@@ -100,7 +100,7 @@ where id = (select id from auth.users where email = 'you@example.com');
 npm run seed:export        # writes supabase/seed.sql from src/content/items
 ```
 
-Paste `supabase/seed.sql` into the SQL Editor and run it. Your pieces become OFFARCHIVE. listings (with the ✳ pick badge). It's safe to re-run, because existing slugs are skipped. Photos from `src/assets` aren't uploaded automatically: open each listing's **Edit** page to add them.
+Paste `supabase/seed.sql` into the SQL Editor and run it. Your pieces become OFFARCHIVE. listings (with the OFFARCHIVE. pick badge). It's safe to re-run, because existing slugs are skipped. Photos from `src/assets` aren't uploaded automatically: open each listing's **Edit** page to add them.
 
 From now on, add and edit pieces from **Sell** / **My listings** on the site (works on your phone). The Markdown files are only a fallback.
 

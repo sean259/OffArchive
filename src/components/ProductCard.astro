@@ -2,6 +2,7 @@
 import { categoryOf, itemPath, catalogNo, statusRank, fitData, type Item } from '../lib/items';
 import { peso } from '../lib/format';
 import { shortCategory } from '../config/site';
+import Hanger from './Hanger.astro';
 import ProductMedia from './ProductMedia.astro';
 import SaveButton from './SaveButton.astro';
 
@@ -55,7 +56,7 @@ const sold = status === 'sold' && dimSold;
       <span>№ {catalogNo(item)}</span>
       {
         item.data.seller.official ? (
-          <span class="pick">✳ OFFARCHIVE.</span>
+          <span class="pick"><Hanger /> OFFARCHIVE.</span>
         ) : (
           <span class="by">
             @{item.data.seller.username}

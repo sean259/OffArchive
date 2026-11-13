@@ -5,7 +5,7 @@
  *   <Logo />                 wordmark
  *   <Logo variant="seal" />  round seal
  */
-import { WORDMARK, SEAL } from '../lib/brand';
+import { WORDMARK, SEAL, HANGER_24 } from '../lib/brand';
 
 interface Props {
   variant?: 'wordmark' | 'seal';
@@ -30,7 +30,9 @@ const a11y = title ? { role: 'img' as const, 'aria-label': title } : { 'aria-hid
         <circle cx="100" cy="100" r="64" fill="none" stroke="currentColor" stroke-width="1" />
         <Fragment set:html={SEAL.ring} />
       </g>
-      <path class="logo-star" d={SEAL.star} stroke-width="6" stroke-linecap="round" />
+      <g class="logo-mark-g">
+        <path class="logo-mark" transform={SEAL.mark.transform} d={HANGER_24} fill="none" stroke-width={SEAL.markStroke} stroke-linecap="round" stroke-linejoin="round" />
+      </g>
     </svg>
   )
 }
@@ -45,7 +47,7 @@ const a11y = title ? { role: 'img' as const, 'aria-label': title } : { 'aria-hid
   .logo-dot {
     fill: var(--accent);
   }
-  .logo-star {
+  .logo-mark {
     stroke: var(--accent);
   }
 </style>

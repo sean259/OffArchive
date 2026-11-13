@@ -15,7 +15,7 @@ const vouches = (await getCollection('vouches', ({ data }) => !data.draft)).sort
   vouches.length > 0 && (
     <section class="vouches" id="vouches">
       <div class="wrap">
-        <SectionHead index="✳" label="Vouches">
+        <SectionHead index="mark" label="Vouches">
           Kind <em>words.</em>
           <span slot="aside" class="label muted">
             From {vouches.length} {vouches.length === 1 ? 'buyer' : 'buyers'}

@@ -1,4 +1,5 @@
 ---
+import Hanger from './Hanger.astro';
 interface Props {
   phrases: string[];
 }
@@ -15,7 +16,7 @@ const run = [...phrases, ...phrases, ...phrases];
           {run.map((p, i) => (
             <span class:list={['item', { it: i % 2 === 1 }]}>
               {p}
-              <span class="star">✳</span>
+              <span class="sep"><Hanger /></span>
             </span>
           ))}
         </span>
@@ -53,10 +54,12 @@ const run = [...phrases, ...phrases, ...phrases];
     font-style: italic;
     color: var(--muted);
   }
-  .star {
-    font-size: 0.5em;
-    color: var(--accent);
-    font-style: normal;
+  .sep {
+    display: inline-flex;
+    font-size: 0.62em;
+  }
+  .sep :global(.hanger) {
+    stroke-width: 1.4;
   }
   @keyframes run {
     to {

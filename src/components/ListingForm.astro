@@ -6,6 +6,7 @@
  */
 import { CATEGORIES, sizeSpec } from '../config/site';
 import { photoUrl } from '../lib/supabase';
+import Hanger from './Hanger.astro';
 
 export interface ListingDraft {
   uuid?: string;
@@ -85,7 +86,7 @@ const initialImages = (listing.images ?? []).map((path) => ({ path, url: photoUr
   {
     !verified && (
       <div class="notice">
-        <span>✳</span>
+        <Hanger />
         <span>
           New listings are reviewed by OFFARCHIVE. before going live, usually within a day.
           {editing && ' Changing the title, photos or description of a live listing sends it back for a quick review.'}

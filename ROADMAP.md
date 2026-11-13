@@ -65,7 +65,7 @@ Rebuilt from a single HTML file into an Astro + TypeScript project.
 - ✅ Sell form with in-browser photo compression, type-aware measurements, edit and delete
 - ✅ Moderation: review queue, reject with a note, resubmit, hide, feature. Verified sellers skip review
 - ✅ Buyers contact sellers directly, with safety tips on community listings
-- ✅ Your own pieces highlighted as ✳ OFFARCHIVE. picks
+- ✅ Your own pieces highlighted as OFFARCHIVE. picks (hanger badge)
 
 ---
 

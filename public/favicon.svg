@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <style>
-    .t { fill: #141412; } .r { stroke: #EFEBE4; } .s { stroke: #D0714F; }
-    @media (prefers-color-scheme: dark) { .t { fill: #EFEBE4; } .r { stroke: #141412; } .s { stroke: #8C3A24; } }
+    .t { fill: #141412; } .r { stroke: #EFEBE4; } .s { color: #D0714F; }
+    @media (prefers-color-scheme: dark) { .t { fill: #EFEBE4; } .r { stroke: #141412; } .s { color: #8C3A24; } }
   </style>
   <rect class="t" width="64" height="64" rx="14"/>
   <circle class="r" cx="32" cy="32" r="22" fill="none" stroke-width="2.2"/>
-  <path class="s" d="M20.5 32L43.5 32M23.87 23.87L40.13 40.13M32 20.5L32 43.5M40.13 23.87L23.87 40.13" stroke-width="4" stroke-linecap="round"/>
+  <g class="s"><path transform="translate(17.27 16.54) scale(1.23)" d="M12 10.3V9.1a2.3 2.3 0 1 1 2.3-2.3M12 10.3 2.1 17.8Q1 19 2.7 19.3H21.3Q23 19 21.9 17.8Z" fill="none" stroke="currentColor" stroke-width="2.44" stroke-linecap="round" stroke-linejoin="round"/></g>
 </svg>

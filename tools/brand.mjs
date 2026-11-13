@@ -7,7 +7,7 @@
  *
  * Writes:
  *   src/lib/brand.ts           path data for the inline <Logo> component (follows light/dark theme)
- *   public/favicon.svg         simplified seal (ring + ✳), adapts to the browser's theme
+ *   public/favicon.svg         simplified seal (ring + hanger), adapts to the browser's theme
  *   public/brand/*.svg         wordmark, seal and lockup in ink, bone and rust versions
  *   public/brand/*.png         app icon, Apple touch icon and a 1080px avatar for Messenger/Facebook
  */
@@ -33,16 +33,20 @@ function text(font, str, size, x, y, tracking = 0) {
   return { d, width: cx - x - tracking * size };
 }
 
-/** Eight-spoke asterisk (the ✳ already used for OFFARCHIVE. picks on the site). */
-const starLines = (cx, cy, r) =>
-  [0, 1, 2, 3]
-    .map((i) => {
-      const a = (i * Math.PI) / 4;
-      const dx = Math.cos(a) * r;
-      const dy = Math.sin(a) * r;
-      return `M${round(cx - dx)} ${round(cy - dy)}L${round(cx + dx)} ${round(cy + dy)}`;
-    })
-    .join('');
+/**
+ * The brand mark: a minimal coat hanger (pre-loved clothing), drawn as one stroked path.
+ * Designed on a 24×24 grid; `hanger(cx, cy, size)` scales it so it's `size` wide, centred on cx,cy.
+ * The same path (HANGER_24) is exported for the site's inline icon.
+ */
+const HANGER_24 = 'M12 10.3V9.1a2.3 2.3 0 1 1 2.3-2.3M12 10.3 2.1 17.8Q1 19 2.7 19.3H21.3Q23 19 21.9 17.8Z';
+const hanger = (cx, cy, size) => {
+  const k = size / 22;
+  return { transform: `translate(${round(cx - 12 * k)} ${round(cy - 12.6 * k)}) scale(${round(k)})`, k };
+};
+const hangerSvg = (cx, cy, size, color, strokePx) => {
+  const h = hanger(cx, cy, size);
+  return `<path transform="${h.transform}" d="${HANGER_24}" fill="none" stroke="${color}" stroke-width="${round(strokePx / h.k)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+};
 
 /** Text set around a circle, starting at 12 o'clock, spread evenly over the full ring. */
 function ring(font, str, size, cx, cy, r, tracking) {
@@ -72,12 +76,11 @@ const dot = { cx: round(word.width + 13), cy: 74.5, r: 7 };
 const wordW = Math.ceil(dot.cx + dot.r + 2);
 const wordH = 84;
 
-/* ── Seal: ring text around a rust ✳ ── */
+/* ── Seal: ring text around the rust hanger ── */
 const SEAL = 200;
 const ringText = 'OFFARCHIVE · PRE-LOVED ARCHIVE · CEBU PH · ';
 const sealRing = ring(mono, ringText, 13.2, 100, 100, 80, 0.2);
-const sealStar = starLines(100, 100, 30);
-const sealSvg = (fg, accent, bg) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SEAL} ${SEAL}" width="${SEAL}" height="${SEAL}">${bg ? `<rect width="${SEAL}" height="${SEAL}" fill="${bg}"/>` : ''}<g fill="${fg}"><circle cx="100" cy="100" r="96" fill="none" stroke="${fg}" stroke-width="1.6"/><circle cx="100" cy="100" r="64" fill="none" stroke="${fg}" stroke-width="1"/>${sealRing}</g><path d="${sealStar}" stroke="${accent}" stroke-width="6" stroke-linecap="round"/></svg>`;
+const sealSvg = (fg, accent, bg) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SEAL} ${SEAL}" width="${SEAL}" height="${SEAL}">${bg ? `<rect width="${SEAL}" height="${SEAL}" fill="${bg}"/>` : ''}<g fill="${fg}"><circle cx="100" cy="100" r="96" fill="none" stroke="${fg}" stroke-width="1.6"/><circle cx="100" cy="100" r="64" fill="none" stroke="${fg}" stroke-width="1"/>${sealRing}</g>${hangerSvg(100, 100, 76, accent, 4.2)}</svg>`;
 
 const wordSvg = (fg, accent) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${wordW} ${wordH}" width="${wordW}" height="${wordH}"><path fill="${fg}" d="${word.d}"/><circle cx="${dot.cx}" cy="${dot.cy}" r="${dot.r}" fill="${accent}"/></svg>`;
@@ -86,22 +89,22 @@ const wordSvg = (fg, accent) =>
 const lockScale = 1.15;
 const lockW = Math.ceil(SEAL + 48 + wordW * lockScale);
 const lockupSvg = (fg, accent) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${lockW} ${SEAL}" width="${lockW}" height="${SEAL}"><g fill="${fg}"><circle cx="100" cy="100" r="96" fill="none" stroke="${fg}" stroke-width="1.6"/><circle cx="100" cy="100" r="64" fill="none" stroke="${fg}" stroke-width="1"/>${sealRing}</g><path d="${sealStar}" stroke="${accent}" stroke-width="6" stroke-linecap="round"/><g transform="translate(${SEAL + 48} ${round(100 - (wordH * lockScale) / 2 - 4)}) scale(${lockScale})"><path fill="${fg}" d="${word.d}"/><circle cx="${dot.cx}" cy="${dot.cy}" r="${dot.r}" fill="${accent}"/></g></svg>`;
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${lockW} ${SEAL}" width="${lockW}" height="${SEAL}"><g fill="${fg}"><circle cx="100" cy="100" r="96" fill="none" stroke="${fg}" stroke-width="1.6"/><circle cx="100" cy="100" r="64" fill="none" stroke="${fg}" stroke-width="1"/>${sealRing}</g>${hangerSvg(100, 100, 76, accent, 4.2)}<g transform="translate(${SEAL + 48} ${round(100 - (wordH * lockScale) / 2 - 4)}) scale(${lockScale})"><path fill="${fg}" d="${word.d}"/><circle cx="${dot.cx}" cy="${dot.cy}" r="${dot.r}" fill="${accent}"/></g></svg>`;
 
-// Favicon: ring text is unreadable at 16px, so just the double ring + ✳ on a rounded tile.
+// Favicon: ring text is unreadable at 16px, so just the ring + hanger on a rounded tile.
 const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <style>
-    .t { fill: ${C.ink}; } .r { stroke: ${C.paper}; } .s { stroke: ${C.rustLight}; }
-    @media (prefers-color-scheme: dark) { .t { fill: ${C.paper}; } .r { stroke: ${C.ink}; } .s { stroke: ${C.rust}; } }
+    .t { fill: ${C.ink}; } .r { stroke: ${C.paper}; } .s { color: ${C.rustLight}; }
+    @media (prefers-color-scheme: dark) { .t { fill: ${C.paper}; } .r { stroke: ${C.ink}; } .s { color: ${C.rust}; } }
   </style>
   <rect class="t" width="64" height="64" rx="14"/>
   <circle class="r" cx="32" cy="32" r="22" fill="none" stroke-width="2.2"/>
-  <path class="s" d="${starLines(32, 32, 11.5)}" stroke-width="4" stroke-linecap="round"/>
+  <g class="s">${hangerSvg(32, 32, 27, "currentColor", 3)}</g>
 </svg>
 `;
 const iconSvg = (size, bg, fg, accent) => {
   const s = size / 64;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="${bg}"/><circle cx="${size / 2}" cy="${size / 2}" r="${22 * s}" fill="none" stroke="${fg}" stroke-width="${2.2 * s}"/><path d="${starLines(size / 2, size / 2, 11.5 * s)}" stroke="${accent}" stroke-width="${4 * s}" stroke-linecap="round"/></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="${bg}"/><circle cx="${size / 2}" cy="${size / 2}" r="${22 * s}" fill="none" stroke="${fg}" stroke-width="${2.2 * s}"/>${hangerSvg(size / 2, size / 2, 27 * s, accent, 3 * s)}</svg>`;
 };
 
 /* ── Write everything ── */
@@ -129,7 +132,9 @@ writeFileSync(
   'src/lib/brand.ts',
   `// Generated by \`npm run brand\` (tools/brand.mjs). Do not edit by hand.
 export const WORDMARK = { width: ${wordW}, height: ${wordH}, d: ${JSON.stringify(word.d)}, dot: ${JSON.stringify(dot)} } as const;
-export const SEAL = { size: ${SEAL}, ring: ${JSON.stringify(sealRing)}, star: ${JSON.stringify(sealStar)} } as const;
+export const SEAL = { size: ${SEAL}, ring: ${JSON.stringify(sealRing)}, mark: ${JSON.stringify(hanger(100, 100, 76))}, markStroke: ${round(4.2 / hanger(100, 100, 76).k)} } as const;
+/** The hanger mark on a 24×24 grid (stroked, round caps/joins). */
+export const HANGER_24 = ${JSON.stringify(HANGER_24)};
 `,
 );
 console.log('✓ Brand files written: public/brand/, public/favicon.svg, public/apple-touch-icon.png, src/lib/brand.ts');

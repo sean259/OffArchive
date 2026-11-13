@@ -1,0 +1,37 @@
+---
+/**
+ * The OFFARCHIVE. hanger mark as an inline icon (same path as the seal, from tools/brand.mjs).
+ * 1em wide, rust by default; set `color` on a parent or pass class to restyle.
+ */
+import { HANGER_24 } from '../lib/brand';
+
+interface Props {
+  class?: string;
+  /** Accessible name; omit for decorative use. */
+  title?: string;
+}
+const { class: cls, title } = Astro.props;
+---
+
+<svg
+  class:list={['hanger', cls]}
+  viewBox="0 0 24 24"
+  role={title ? 'img' : undefined}
+  aria-label={title}
+  aria-hidden={title ? undefined : 'true'}
+><path d={HANGER_24}></path></svg>
+
+<style>
+  .hanger {
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    vertical-align: -0.2em;
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+  }
+</style>

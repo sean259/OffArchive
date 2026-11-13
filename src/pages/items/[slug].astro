@@ -9,6 +9,7 @@ import ProductCard from '../../components/ProductCard.astro';
 import FitFinder from '../../components/FitFinder.astro';
 import SellerCard from '../../components/SellerCard.astro';
 import RecentlyViewed from '../../components/RecentlyViewed.astro';
+import Hanger from '../../components/Hanger.astro';
 import {
   getItems,
   getItemBySlug,
@@ -212,7 +213,7 @@ const trust = seller.official
           {
             trust.map((t) => (
               <li>
-                <span class="star">✳</span>
+                <Hanger />
                 {t}
               </li>
             ))
@@ -530,9 +531,6 @@ const trust = seller.official
   .trust li {
     display: inline-flex;
     gap: 8px;
-  }
-  .star {
-    color: var(--accent);
   }
 
   .acc {

@@ -47,7 +47,7 @@ These rules are enforced **in the database** (row-level security and triggers in
 - **Sell:** **Sell** button → log in with email (6-digit code) → add contact details → add photos, details, measurements → submit.
 - **Manage:** **My listings** shows each listing's status (In review, Live, Needs changes with the admin's note, Sold), lets you change the status in one tap, and has edit and delete.
 - **Moderate:** **/admin** → Review queue: Approve, or Reject with a reason (the seller sees it and can fix & resubmit). All listings: hide, feature, edit. Sellers: verify trusted sellers so they skip the queue.
-- Your own pieces (any admin's) carry the **✳ OFFARCHIVE.** badge. Community pieces show **@username**, with ✓ if verified.
+- Your own pieces (any admin's) carry the **OFFARCHIVE.** badge with the hanger mark. Community pieces show **@username**, with ✓ if verified.
 
 ## Project structure
 

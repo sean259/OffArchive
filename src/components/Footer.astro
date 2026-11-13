@@ -93,7 +93,9 @@ const year = new Date().getFullYear();
     margin-bottom: 24px;
     animation: seal-spin 40s linear infinite;
   }
-  .intro :global(.seal-spin .logo-star) {
+  /* The hanger stays upright while the ring turns. */
+  .intro :global(.seal-spin .logo-mark-g) {
+    transform-box: view-box;
     transform-origin: 100px 100px;
     animation: seal-spin 40s linear infinite reverse;
   }
@@ -104,7 +106,7 @@ const year = new Date().getFullYear();
   }
   @media (prefers-reduced-motion: reduce) {
     .intro :global(.seal-spin),
-    .intro :global(.seal-spin .logo-star) {
+    .intro :global(.seal-spin .logo-mark-g) {
       animation: none;
     }
   }

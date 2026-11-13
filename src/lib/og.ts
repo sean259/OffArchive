@@ -6,7 +6,7 @@ import satori from 'satori';
 import sharp from 'sharp';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { WORDMARK, SEAL } from './brand';
+import { WORDMARK, SEAL, HANGER_24 } from './brand';
 
 type Node = { type: string; props: Record<string, unknown> };
 const h = (type: string, style: Record<string, unknown>, ...children: unknown[]): Node => ({
@@ -54,7 +54,7 @@ const wordmark = () =>
 /** The round archive seal. */
 const seal = (size: number) =>
   svgImg(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="${C.ink}"><circle cx="100" cy="100" r="96" fill="none" stroke="${C.ink}" stroke-width="1.6"/><circle cx="100" cy="100" r="64" fill="none" stroke="${C.ink}" stroke-width="1"/>${SEAL.ring}</g><path d="${SEAL.star}" stroke="${C.accent}" stroke-width="6" stroke-linecap="round"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="${C.ink}"><circle cx="100" cy="100" r="96" fill="none" stroke="${C.ink}" stroke-width="1.6"/><circle cx="100" cy="100" r="64" fill="none" stroke="${C.ink}" stroke-width="1"/>${SEAL.ring}</g><path transform="${SEAL.mark.transform}" d="${HANGER_24}" fill="none" stroke="${C.accent}" stroke-width="${SEAL.markStroke}" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     size,
     size,
   );

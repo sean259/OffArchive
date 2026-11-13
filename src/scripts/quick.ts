@@ -24,7 +24,7 @@ function render(e: CatalogEntry) {
   const sold = e.status === 'sold';
   const href = contactHref(e);
   const message = `Hi! I'm interested in the ${e.title} (${[e.size, e.priceLabel].filter(Boolean).join(', ')}) on OFFARCHIVE. Is it still available? ${location.origin}${e.url}`;
-  const seller = e.seller.official ? '✳ OFFARCHIVE.' : `@${esc(e.seller.username)}`;
+  const seller = e.seller.official ? 'OFFARCHIVE.' : `@${esc(e.seller.username)}`;
   const specs = [
     e.size && [e.sizeLabel, e.size],
     ['Condition', e.condition],

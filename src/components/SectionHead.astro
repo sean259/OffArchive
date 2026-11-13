@@ -4,11 +4,12 @@ interface Props {
   index: string;
   label: string;
 }
+import Hanger from './Hanger.astro';
 const { index, label } = Astro.props;
 ---
 
 <header class="shead rv">
-  <div class="tag label muted"><span>({index})</span><span>{label}</span></div>
+  <div class="tag label muted"><span>({index === 'mark' ? <Hanger /> : index})</span><span>{label}</span></div>
   <h2><slot /></h2>
   <div class="aside"><slot name="aside" /></div>
 </header>

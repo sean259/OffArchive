@@ -65,7 +65,7 @@ const STATUSES = ['pending', 'available', 'reserved', 'sold', 'rejected', 'hidde
         <section>
           {listings.length === 0 ? (
             <p class="empty serif">
-              All caught up <em>✳</em>
+              All caught up<em>.</em>
             </p>
           ) : (
             <ul class="queue">
@@ -152,7 +152,7 @@ const STATUSES = ['pending', 'available', 'reserved', 'sold', 'rejected', 'hidde
                       <a href={itemPath(l)} target="_blank" class="t">
                         {l.data.title}
                       </a>
-                      {l.data.featured && <span class="feat label">✳ Featured</span>}
+                      {l.data.featured && <span class="feat label">● Featured</span>}
                     </td>
                     <td>
                       <a href={`/sellers/${l.data.seller.username}/`}>@{l.data.seller.username}</a>
