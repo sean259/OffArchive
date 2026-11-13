@@ -147,9 +147,10 @@ Consignment · bundles ("buy 2, save ₱100") · lookbook pages per drop · meet
 
 | Task | Pri | Details |
 |------|-----|---------|
-| 🔨 Security headers | P0 | In `netlify.toml` / middleware: `Content-Security-Policy` (self + Supabase URL + analytics only), `Strict-Transport-Security`, `X-Frame-Options: DENY` / `frame-ancestors 'none'`, `Permissions-Policy` (camera, mic and geolocation off). Test with securityheaders.com |
-| 🔨 Rate limiting | P0 | Supabase Auth limits OTP emails per hour (set it in the dashboard). Add per-IP / per-user limits on `/api/listings` and `/api/profile` (Netlify edge rate limit, or a small `rate_limits` table) |
-| 🔨 Upload validation on the server side | P0 | Storage bucket: limit size (e.g. 5 MB) and MIME types (`image/jpeg`, `image/webp`, `image/png`) in the bucket settings, not just in the browser |
+| 🔨 **Upgrade Astro 5 → 7, sharp, adapters** | P0 | `npm audit` reports a critical (AVIF image RCE) and several XSS advisories fixed only in Astro 7.x. Two major versions: follow the upgrade guides, re-run all checks. CI audit is report-only until this lands |
+| ✅ Security headers | P0 | In `netlify.toml` / middleware: `Content-Security-Policy` (self + Supabase URL + analytics only), `Strict-Transport-Security`, `X-Frame-Options: DENY` / `frame-ancestors 'none'`, `Permissions-Policy` (camera, mic and geolocation off). Test with securityheaders.com |
+| ✅ Rate limiting | P0 | Supabase Auth limits OTP emails per hour (set it in the dashboard). Add per-IP / per-user limits on `/api/listings` and `/api/profile` (Netlify edge rate limit, or a small `rate_limits` table) |
+| ✅ Upload validation on the server side | P0 | Storage bucket: limit size (e.g. 5 MB) and MIME types (`image/jpeg`, `image/webp`, `image/png`) in the bucket settings, not just in the browser |
 | 🔨 Escape user content everywhere | P0 | Audit that descriptions and usernames are never rendered with `set:html`. Validate Messenger, Instagram and phone formats so a contact link can't be `javascript:` |
 | 🧑 Account security | P0 | 2FA on GitHub, Supabase, Netlify, domain registrar and email. These accounts are the real keys to the site |
 | 🔨 Dependency scanning | P1 | GitHub Dependabot + `npm audit` in CI |
@@ -173,9 +174,9 @@ Consignment · bundles ("buy 2, save ₱100") · lookbook pages per drop · meet
 
 | Task | Pri | Details |
 |------|-----|---------|
-| 🔨 Branded 500 page | P0 | `src/pages/500.astro`: friendly message, a "Message us on Messenger" link, and no stack traces shown to visitors |
-| 🔨 Supabase-down mode | P0 | If the database is unreachable, the shop shows the last cached items with a quiet banner instead of crashing. Login and sell show "temporarily unavailable" |
-| 🔨 Timeouts on every database call | P1 | Abort after ~8s so a slow database can't hang page renders |
+| ✅ Branded 500 page | P0 | `src/pages/500.astro`: friendly message, a "Message us on Messenger" link, and no stack traces shown to visitors |
+| ✅ Supabase-down mode | P0 | If the database is unreachable, the shop shows the last cached items with a quiet banner instead of crashing. Login and sell show "temporarily unavailable" |
+| ✅ Timeouts on every database call | P1 | Abort after ~8s so a slow database can't hang page renders |
 | 🔨 Form error UX | P0 | Every form keeps what the user typed on error, puts the message beside the field, and announces it to screen readers (`aria-live`) |
 | 🔨 Upload failure recovery | P1 | Retry failed photo uploads, show per-photo progress and errors, and remove orphaned files if the listing save fails |
 | 🔨 Expired-session handling | P1 | When a session expires mid-form, keep the draft locally, send the user to log in, and bring them back to the form |
@@ -194,7 +195,7 @@ Consignment · bundles ("buy 2, save ₱100") · lookbook pages per drop · meet
 
 | Task | Pri | Details |
 |------|-----|---------|
-| 🔨 CI on GitHub Actions | P0 | On every push to `dev` and every PR to `main`: install → `astro check` → `test:db` → build. `main` is protected and only merges when CI is green |
+| ✅ CI on GitHub Actions | P0 | On every push to `dev` and every PR to `main`: install → `astro check` → `test:db` → build. `main` is protected and only merges when CI is green |
 | 🔨 Unit tests (Vitest) | P1 | `fit.ts`, `api.ts` validators, `slugify`, `items.ts` mapping, `format.ts` |
 | 🔨 API route tests | P1 | Auth required, wrong owner rejected, bad input → 400, CSRF rejected |
 | 🔨 End-to-end tests (Playwright) | P1 | Browse → item → Messenger CTA. Log in → sell → admin approve → listing live. Mobile viewport too |
@@ -241,7 +242,7 @@ Consignment · bundles ("buy 2, save ₱100") · lookbook pages per drop · meet
 | Task | Pri | Details |
 |------|-----|---------|
 | 🔨 Uptime monitor | P1 | UptimeRobot / Better Stack free tier pinging `/` and a `/api/health` route that checks the database |
-| 🧑 Backups | P0 | Supabase free tier has no point-in-time restore. Run a weekly `supabase db dump` (scripted) + bucket export, stored off-site |
+| ✅🧑 Backups | P0 | **Built:** `.github/workflows/backup.yml` (weekly, encrypted, kept 90 days). **You:** add the `SUPABASE_DB_URL` and `BACKUP_PASSPHRASE` secrets on GitHub, then press "Run workflow" once to test. Originally: Supabase free tier has no point-in-time restore. Run a weekly `supabase db dump` (scripted) + bucket export, stored off-site |
 | 🔨 Runbook | P1 | `docs/RUNBOOK.md` covering site down, database down, spam wave, leaked key (rotate in Supabase, redeploy), bad deploy (Netlify instant rollback) |
 | 🔨 Migration discipline | P0 | Every database change is a new file in `supabase/migrations/`, tested with `test:db`, and pushed to staging before production. Never edit production tables by hand |
 | 🧑 Supabase free-tier pause | P1 | Free projects pause after 7 days of no activity. The uptime monitor's health check keeps it awake |

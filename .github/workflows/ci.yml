@@ -1,0 +1,41 @@
+# Runs on every push to dev and every pull request into main.
+# main should only be merged when this is green (Settings → Branches → protect main).
+name: CI
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Type-checks every page and component.
+      - run: npx astro check
+
+      # Real Postgres (in-process) tests of the database security rules.
+      - run: npm run test:db
+
+      # Builds without Supabase keys (the site falls back to the Markdown items),
+      # which proves the production build works.
+      - run: npx astro build
+
+      # Known-vulnerability scan of production dependencies.
+      # Report-only until the Astro 5 → 7 upgrade lands (ROADMAP: Security, P0); then remove continue-on-error.
+      - run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true

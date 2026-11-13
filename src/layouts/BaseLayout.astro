@@ -16,7 +16,7 @@ import Cursor from '../components/Cursor.astro';
 import Intro from '../components/Intro.astro';
 import Analytics from '../components/Analytics.astro';
 import { SITE } from '../config/site';
-import { getItems } from '../lib/items';
+import { getItems, isDegraded } from '../lib/items';
 
 interface Props {
   /** Page title; the brand name is appended automatically. */
@@ -33,6 +33,8 @@ const fullTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE
 const canonical = new URL(Astro.url.pathname, base).href;
 const ogImage = new URL(image, base).href;
 const available = (await getItems()).filter((i) => i.data.status === 'available').length;
+// Set when the database didn't answer: the shop is showing the last listings it loaded.
+const degraded = isDegraded();
 ---
 
 <!doctype html>
@@ -84,14 +86,23 @@ const available = (await getItems()).filter((i) => i.data.status === 'available'
   <body>
     <Intro />
     <a class="skip" href="#main">Skip to content</a>
-    <div class="ann label">
-      <span class="dot" aria-hidden="true"></span>
-      <span>{available} pieces available</span>
-      <span class="sep" aria-hidden="true">/</span>
-      <span class="hide-sm">{SITE.announcement}</span>
-      <span class="sep hide-sm" aria-hidden="true">/</span>
-      <a href="/how-to-buy/">How to buy →</a>
-    </div>
+    {
+      degraded ? (
+        <div class="ann label" role="status">
+          <span class="dot reserved" aria-hidden="true" />
+          <span>Listings may be a few minutes out of date. Logging in and selling are paused for a moment.</span>
+        </div>
+      ) : (
+        <div class="ann label">
+          <span class="dot" aria-hidden="true" />
+          <span>{available} pieces available</span>
+          <span class="sep" aria-hidden="true">/</span>
+          <span class="hide-sm">{SITE.announcement}</span>
+          <span class="sep hide-sm" aria-hidden="true">/</span>
+          <a href="/how-to-buy/">How to buy →</a>
+        </div>
+      )
+    }
     <Header />
     <main id="main">
       <slot />

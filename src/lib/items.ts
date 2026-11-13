@@ -160,20 +160,32 @@ const sortForShop = (items: Item[]) =>
 let cache: { at: number; items: Promise<Item[]> } | null = null;
 const TTL = 5_000;
 
+// If Supabase is unreachable, keep serving the last listings we loaded instead of an
+// empty shop, and flag it so the layout can show a quiet "may be out of date" banner.
+let lastGood: Item[] | null = null;
+let degradedUntil = 0;
+/** True for a minute after a failed listings query. */
+export const isDegraded = () => Date.now() < degradedUntil;
+
 async function loadPublic(): Promise<Item[]> {
   const db = publicClient();
   if (!db) return sortForShop(await fromMarkdown());
-  const { data, error } = await db
-    .from('listings')
-    .select(LISTING_SELECT)
-    .in('status', PUBLIC_STATUSES)
-    .order('listed_at', { ascending: false })
-    .limit(1000);
-  if (error) {
-    console.error('[items] Supabase query failed:', error.message);
-    return [];
+  try {
+    const { data, error } = await db
+      .from('listings')
+      .select(LISTING_SELECT)
+      .in('status', PUBLIC_STATUSES)
+      .order('listed_at', { ascending: false })
+      .limit(1000);
+    if (error) throw error;
+    lastGood = sortForShop((data as ListingWithSeller[]).map(fromRow));
+    degradedUntil = 0;
+    return lastGood;
+  } catch (err) {
+    console.error('[items] Supabase query failed:', (err as Error).message ?? err);
+    degradedUntil = Date.now() + 60_000;
+    return lastGood ?? [];
   }
-  return sortForShop((data as ListingWithSeller[]).map(fromRow));
 }
 
 /** Everything the public can see (available, reserved, sold), shop-sorted. */
@@ -198,7 +210,12 @@ export async function getItemBySlug(slug: string, client?: SupabaseClient | null
   const db = client ?? publicClient();
   if (!db) return (await getItems()).find((i) => i.id === slug) ?? null;
   const { data, error } = await db.from('listings').select(LISTING_SELECT).eq('slug', slug).maybeSingle();
-  if (error) console.error('[items] listing lookup failed:', error.message);
+  if (error) {
+    console.error('[items] listing lookup failed:', error.message);
+    // Database hiccup: fall back to the last loaded shop listings rather than a false 404.
+    degradedUntil = Date.now() + 60_000;
+    return lastGood?.find((i) => i.id === slug) ?? null;
+  }
   return data ? fromRow(data as ListingWithSeller) : null;
 }
 

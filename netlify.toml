@@ -16,4 +16,9 @@
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    # Server-rendered pages get the full Content-Security-Policy from src/lib/security.ts.
+    Content-Security-Policy = "frame-ancestors 'none'; base-uri 'self'; object-src 'none'"

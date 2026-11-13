@@ -1,0 +1,49 @@
+---
+/**
+ * Shown when something breaks on the server. Never shows the error itself to visitors
+ * (it's logged on the server instead), and always offers a way to still reach the shop.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { messengerUrl } from '../config/site';
+
+interface Props {
+  error?: unknown;
+}
+const { error } = Astro.props;
+console.error('[500]', Astro.url.pathname, error instanceof Error ? error.stack ?? error.message : error);
+---
+
+<BaseLayout title="Something went wrong" noindex>
+  <section class="nf">
+    <div class="wrap">
+      <p class="label muted">(Error 500)</p>
+      <h1 class="rise">
+        <span class="ln" style="--i:0"><span>A loose</span></span>
+        <span class="ln" style="--i:1"><span><em>thread.</em></span></span>
+      </h1>
+      <p class="lede">Something went wrong on our side. Try again in a moment. If it keeps happening, message us and we’ll sort it out.</p>
+      <div class="actions">
+        <a class="btn" href={Astro.url.pathname}>Try again <span class="arrow">→</span></a>
+        <a class="link" href={messengerUrl} target="_blank" rel="noopener">Message us on Messenger ↗</a>
+        <a class="link" href="/">Home</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin: 24px 0 32px;
+  }
+  .lede {
+    font: 400 clamp(22px, 2vw, 28px) / 1.3 var(--display);
+    max-width: 34ch;
+    margin: 0 0 36px;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px;
+  }
+</style>

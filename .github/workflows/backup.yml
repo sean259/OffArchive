@@ -1,0 +1,60 @@
+# Weekly encrypted database backup (Supabase's free plan has no automatic backups).
+#
+# One-time setup, GitHub → repo → Settings → Secrets and variables → Actions → New repository secret:
+#   SUPABASE_DB_URL     Supabase → Connect → "Session pooler" connection string, with your DB password filled in
+#   BACKUP_PASSPHRASE   a long random passphrase. Store it in your password manager: without it the backup can't be opened
+#
+# The repo is public, so the dump is encrypted before it's uploaded. Download it from the
+# workflow run's "Artifacts", then decrypt:
+#   gpg --decrypt offarchive-YYYY-MM-DD.sql.gz.gpg | gunzip > backup.sql
+name: Backup
+
+on:
+  schedule:
+    - cron: '0 18 * * 0' # Sundays 18:00 UTC (Monday 02:00 in the Philippines)
+  workflow_dispatch: # "Run workflow" button for a manual backup
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check secrets
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$DB" ] || [ -z "$PASS" ]; then
+            echo "::error::Add the SUPABASE_DB_URL and BACKUP_PASSPHRASE secrets (see the top of backup.yml)."
+            exit 1
+          fi
+
+      - name: Install pg_dump 17 (matches Supabase's Postgres version)
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+
+      - name: Dump, compress and encrypt
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -o pipefail
+          FILE="offarchive-$(date -u +%F).sql.gz.gpg"
+          # Your data (public schema), accounts (auth) and photo index (storage). Photos themselves stay in the bucket.
+          /usr/lib/postgresql/17/bin/pg_dump "$DB" --no-owner --no-privileges \
+              --schema=public --schema=auth --schema=storage \
+            | gzip -9 \
+            | gpg --batch --yes --symmetric --cipher-algo AES256 --passphrase "$PASS" -o "$FILE"
+          echo "FILE=$FILE" >> "$GITHUB_ENV"
+          ls -lh "$FILE"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FILE }}
+          path: ${{ env.FILE }}
+          retention-days: 90
+          if-no-files-found: error

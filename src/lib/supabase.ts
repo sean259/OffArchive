@@ -18,12 +18,18 @@ export const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string |
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);
 export const PHOTO_BUCKET = 'listing-images';
 
+/** Give up on a Supabase request after 8s so a slow database can't hang a page render. */
+const TIMEOUT_MS = 8_000;
+const fetchWithTimeout: typeof fetch = (input, init) =>
+  fetch(input, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(TIMEOUT_MS)]) : AbortSignal.timeout(TIMEOUT_MS) });
+
 let anon: SupabaseClient | null = null;
 
 export function publicClient(): SupabaseClient | null {
   if (!isSupabaseConfigured) return null;
   anon ??= createClient(SUPABASE_URL!, SUPABASE_KEY!, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { fetch: fetchWithTimeout },
   });
   return anon;
 }
@@ -31,6 +37,7 @@ export function publicClient(): SupabaseClient | null {
 export function requestClient(request: Request, cookies: AstroCookies): SupabaseClient | null {
   if (!isSupabaseConfigured) return null;
   return createServerClient(SUPABASE_URL!, SUPABASE_KEY!, {
+    global: { fetch: fetchWithTimeout },
     cookies: {
       getAll: () =>
         parseCookieHeader(request.headers.get('Cookie') ?? '').map((c) => ({ name: c.name, value: c.value ?? '' })),
