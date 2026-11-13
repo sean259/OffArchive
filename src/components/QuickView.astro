@@ -52,6 +52,15 @@
       opacity: 0;
     }
   }
+  .qv.closing {
+    animation: qv-out 0.32s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+  @keyframes qv-out {
+    to {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+    }
+  }
   .qv-x {
     position: absolute;
     top: 14px;
@@ -203,6 +212,14 @@
     }
     @keyframes qv-up {
       from {
+        transform: translateY(100%);
+      }
+    }
+    .qv.closing {
+      animation: qv-down 0.36s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+    @keyframes qv-down {
+      to {
         transform: translateY(100%);
       }
     }

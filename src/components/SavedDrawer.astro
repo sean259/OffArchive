@@ -62,6 +62,14 @@
       transform: translateX(100%);
     }
   }
+  .drawer.closing {
+    animation: drawer-out 0.38s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+  @keyframes drawer-out {
+    to {
+      transform: translateX(100%);
+    }
+  }
   @keyframes fade {
     from {
       opacity: 0;

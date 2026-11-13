@@ -167,7 +167,14 @@ section {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
-  transition: color 0.45s var(--ease), border-color 0.45s var(--ease);
+  transition:
+    color 0.45s var(--ease),
+    border-color 0.45s var(--ease),
+    scale 0.3s var(--ease);
+}
+.btn:active,
+.round:active {
+  scale: 0.96;
 }
 .btn::before {
   content: '';
@@ -342,7 +349,8 @@ section {
   transition:
     transform 0.6s var(--ease),
     color 0.45s var(--ease),
-    border-color 0.45s var(--ease);
+    border-color 0.45s var(--ease),
+    scale 0.3s var(--ease);
 }
 
 /* Smooth scroll (Lenis) */
@@ -374,12 +382,89 @@ html.lenis body {
   }
 }
 
+/* Page transitions: the old page drifts up and fades, the new one rises in behind it.
+   Shared elements (the header, a card's photo → the item page) glide on their own.
+   Scoped away from the in-page filter (.vt-cards) and theme (.theme-vt) transitions. */
 @view-transition {
   navigation: auto;
 }
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.35s;
+:root:not(.vt-cards, .theme-vt)::view-transition-group(*) {
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root:not(.vt-cards, .theme-vt)::view-transition-old(root) {
+  animation: 0.32s cubic-bezier(0.4, 0, 1, 1) both vt-page-out;
+}
+:root:not(.vt-cards, .theme-vt)::view-transition-new(root) {
+  animation: 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both vt-page-in;
+}
+@keyframes vt-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+@keyframes vt-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+}
+
+/* Theme switch: the new palette spreads in a circle from the toggle (scripts/ui.ts). */
+.theme-vt,
+.theme-vt * {
+  transition: none !important;
+}
+.theme-vt * {
+  view-transition-name: none !important;
+}
+.theme-vt::view-transition-old(root),
+.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Dialog exits (scripts/dialogs.ts adds .closing): every backdrop fades out with its sheet. */
+dialog.closing::backdrop {
+  animation: dialog-scrim-out 0.32s ease forwards;
+}
+@keyframes dialog-scrim-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Section titles rise out of a mask; the rule beneath them draws across. */
+.js .shead.rv {
+  position: relative;
+  border-bottom-color: transparent;
+}
+.js .shead.rv::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--line);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.6s var(--ease) 0.15s;
+}
+.js .shead.rv.in::after {
+  transform: none;
+}
+.js .shead.rv h2 {
+  clip-path: inset(0 0 100% 0);
+  translate: 0 0.35em;
+  transition:
+    clip-path 1.2s var(--ease) 0.08s,
+    translate 1.2s var(--ease) 0.08s;
+}
+.js .shead.rv.in h2 {
+  clip-path: inset(-0.3em -0.5em -0.4em -0.3em);
+  translate: none;
 }
 
 @media (max-width: 760px) {
@@ -542,7 +627,8 @@ html.lenis body {
   transition:
     background 0.3s,
     color 0.3s,
-    transform 0.4s var(--ease);
+    transform 0.4s var(--ease),
+    scale 0.3s var(--ease);
 }
 .round:hover {
   transform: scale(1.08);

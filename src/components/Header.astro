@@ -104,6 +104,17 @@ const initial = (profile?.display_name ?? user?.email ?? '?').trim().charAt(0).t
     -webkit-backdrop-filter: blur(14px) saturate(1.2);
     border-bottom: 1px solid transparent;
     transition: transform 0.5s var(--ease), border-color 0.3s;
+    /* Holds still while the page underneath changes. */
+    view-transition-name: site-header;
+  }
+  /* Tactile press on every header control */
+  .tools :is(.sell-btn, .saved-btn, .icon, .avatar) {
+    transition-property: background, color, scale;
+    transition-duration: 0.3s;
+    transition-timing-function: var(--ease);
+  }
+  .tools :is(.sell-btn, .saved-btn, .icon, .avatar):active {
+    scale: 0.94;
   }
   .hdr.scrolled {
     border-bottom-color: var(--line);
@@ -261,6 +272,32 @@ const initial = (profile?.display_name ?? user?.email ?? '?').trim().charAt(0).t
   .sheet[open] {
     display: flex;
     flex-direction: column;
+    animation: sheet-in 0.75s var(--ease);
+  }
+  /* Curtain: drops open from the top, lifts away on close. */
+  @keyframes sheet-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  .sheet.closing {
+    animation: sheet-out 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  @keyframes sheet-out {
+    from {
+      clip-path: inset(0 0 0 0);
+    }
+    to {
+      clip-path: inset(0 0 100% 0);
+    }
+  }
+  .sheet.closing nav a {
+    transition: opacity 0.25s, translate 0.4s cubic-bezier(0.4, 0, 1, 1);
+    opacity: 0;
+    translate: 0 -16px;
   }
   .sheet-top {
     display: flex;

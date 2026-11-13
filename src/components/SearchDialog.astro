@@ -69,6 +69,15 @@ import { CATEGORIES } from '../config/site';
       transform: translateY(-12px) scale(0.98);
     }
   }
+  .search.closing {
+    animation: search-out 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+  @keyframes search-out {
+    to {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+  }
   .box {
     display: flex;
     flex-direction: column;
