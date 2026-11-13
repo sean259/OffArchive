@@ -12,7 +12,8 @@
     "test:db": "node supabase/tests/rls.test.mjs",
     "photos": "node tools/photos.mjs",
     "seed:export": "node tools/export-seed.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "sample-photos": "node tools/sample-photos.mjs"
   },
   "dependencies": {
     "@astrojs/netlify": "^6.6.5",

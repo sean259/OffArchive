@@ -24,6 +24,7 @@ Without the `.env` values the site still runs, read-only, from the Markdown file
 | `npm run test:db` | Run the database security tests (30 checks, no Supabase account needed) |
 | `npm run seed:export` | Turn the Markdown items into `supabase/seed.sql` for the one-time import |
 | `npm run photos` | Batch-prepare photos for Markdown items (optional) |
+| `npm run sample-photos` | Regenerate the stamped **SAMPLE** placeholder photos for the demo items (`-- --remove` deletes them) |
 
 Requires Node 18.20+ (Node 22 recommended). On Windows PowerShell, if `npm` is blocked, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once.
 
