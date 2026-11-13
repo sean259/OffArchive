@@ -76,7 +76,7 @@ document.addEventListener('click', (e) => {
   const text = el?.dataset.copy;
   if (!text) return;
   copy(text).then((ok) => {
-    if (ok) toast('Message copied — paste it in Messenger.');
+    if (ok) toast('Message ready — just hit send. (Copied too, just in case.)');
   });
 });
 

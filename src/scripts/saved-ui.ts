@@ -2,6 +2,7 @@
 import { getSaved, toggleSaved, removeSaved, clearSaved, refreshSaved } from '../lib/saved';
 import { toast } from '../lib/toast';
 import { getCatalog, esc, thumbHtml, STATUS_TEXT, type CatalogEntry } from '../lib/catalog';
+import { withMessage } from '../lib/contact';
 
 const catalog = getCatalog();
 const drawer = document.querySelector<HTMLDialogElement>('#saved');
@@ -60,14 +61,14 @@ function renderDrawer(ids: string[]) {
       const seller = group[0].seller;
       const msg =
         `Hi! I'm interested in ${group.length === 1 ? 'this piece' : 'these pieces'} on OFFARCHIVE.:\n` +
-        group.map((e) => `• ${e.title} (${[e.size, e.priceLabel].filter(Boolean).join(', ')}) — ${origin}${e.url}`).join('\n') +
+        group.map((e) => `• № ${e.no} – ${e.title} (${[e.size, e.priceLabel].filter(Boolean).join(', ')}) — ${origin}${e.url}`).join('\n') +
         `\nAre ${group.length === 1 ? 'it' : 'they'} still available?`;
       const who = groups.size > 1 ? ` ${esc(seller.name)}` : '';
       const count = group.length === 1 ? 'this piece' : `these ${group.length}`;
       const href = seller.messenger ?? (seller.phone ? `sms:${seller.phone.replace(/\s/g, '')}` : null);
       if (!href) return '';
       const verb = seller.messenger ? 'Ask' : 'Text';
-      return `<a class="btn btn--block" href="${esc(href)}" target="_blank" rel="noopener" data-copy="${esc(msg)}">
+      return `<a class="btn btn--block" href="${esc(withMessage(href, msg))}" target="_blank" rel="noopener" data-copy="${esc(msg)}">
           <span>${verb}${who} about ${count}</span><span class="arrow">→</span></a>`;
     })
     .join('');

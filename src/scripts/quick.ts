@@ -2,6 +2,7 @@
 import { getCatalog, esc, STATUS_TEXT, type CatalogEntry } from '../lib/catalog';
 import { getSaved } from '../lib/saved';
 import { rememberView } from '../lib/recent';
+import { itemMessage, withMessage } from '../lib/contact';
 
 const dialog = document.querySelector<HTMLDialogElement>('#quick');
 const body = dialog?.querySelector<HTMLElement>('[data-qv-body]');
@@ -23,7 +24,7 @@ function render(e: CatalogEntry) {
   const saved = getSaved().includes(e.id);
   const sold = e.status === 'sold';
   const href = contactHref(e);
-  const message = `Hi! I'm interested in the ${e.title} (${[e.size, e.priceLabel].filter(Boolean).join(', ')}) on OFFARCHIVE. Is it still available? ${location.origin}${e.url}`;
+  const message = itemMessage({ no: e.no, title: e.title, size: e.size, price: e.priceLabel, url: location.origin + e.url });
   const seller = e.seller.official ? 'OFFARCHIVE.' : `@${esc(e.seller.username)}`;
   const specs = [
     e.size && [e.sizeLabel, e.size],
@@ -51,7 +52,7 @@ function render(e: CatalogEntry) {
           sold
             ? `<span class="btn btn--block" aria-disabled="true">Released — sold</span>`
             : href
-              ? `<a class="btn btn--block" href="${esc(href)}" target="_blank" rel="noopener" data-copy="${esc(message)}">Message ${e.seller.official ? 'us' : 'seller'} <span class="arrow">→</span><span class="sr-only">(opens in a new tab)</span></a>`
+              ? `<a class="btn btn--block" href="${esc(withMessage(href, message))}" target="_blank" rel="noopener" data-copy="${esc(message)}">Message ${e.seller.official ? 'us' : 'seller'} <span class="arrow">→</span><span class="sr-only">(opens in a new tab)</span></a>`
               : ''
         }
         <a class="btn btn--ghost" href="${esc(e.url)}">Full details <span class="arrow">→</span></a>

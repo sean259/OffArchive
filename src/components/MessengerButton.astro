@@ -1,9 +1,10 @@
 ---
 /**
- * Opens a Messenger chat with the page. If `message` is set, it is copied to the
- * clipboard on click (handled in scripts/ui.ts) so the buyer can paste it into the chat.
+ * Opens a Messenger chat with the page. If `message` is set, the chat opens with it already typed
+ * (m.me `?text=` / sms `?body=`), and it is also copied on click (scripts/ui.ts) as a fallback.
  */
 import { messengerUrl } from '../config/site';
+import { withMessage } from '../lib/contact';
 
 interface Props {
   message?: string;
@@ -37,7 +38,7 @@ const {
   ) : (
     <a
       class:list={['btn', { 'btn--light': variant === 'light', 'btn--block': block }]}
-      href={href}
+      href={withMessage(href, message)}
       target="_blank"
       rel="noopener"
       data-copy={message}
