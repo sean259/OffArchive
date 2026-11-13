@@ -1,5 +1,6 @@
 ---
 import { NAV, SITE } from '../config/site';
+import Logo from './Logo.astro';
 
 const left = NAV.slice(0, 3);
 const right = NAV.slice(3);
@@ -15,7 +16,7 @@ const initial = (profile?.display_name ?? user?.email ?? '?').trim().charAt(0).t
       {left.map((l) => <a href={l.href} aria-current={isCurrent(l.href)}>{l.label}</a>)}
     </nav>
 
-    <a class="mark" href="/" aria-label={`${SITE.name} home`}>OFFARCHIVE<span>.</span></a>
+    <a class="mark" href="/" aria-label={`${SITE.name} home`}><Logo /></a>
 
     <div class="tools">
       <nav class="links" aria-label="Secondary">
@@ -62,7 +63,7 @@ const initial = (profile?.display_name ?? user?.email ?? '?').trim().charAt(0).t
 
 <dialog class="sheet" id="menu" aria-label="Menu">
   <div class="sheet-top">
-    <span class="mark">OFFARCHIVE<span>.</span></span>
+    <span class="mark"><Logo title={SITE.name} /></span>
     <button class="x label" type="button" data-menu-close>Close</button>
   </div>
   <nav aria-label="Mobile">
@@ -120,12 +121,11 @@ const initial = (profile?.display_name ?? user?.email ?? '?').trim().charAt(0).t
     height: var(--header-h);
     gap: 24px;
   }
+  /* Wordmark: the SVG is 1em tall, so font-size sets its height. */
   .mark {
-    font: 700 21px/1 var(--sans);
-    letter-spacing: -0.055em;
-  }
-  .mark span {
-    color: var(--accent);
+    display: block;
+    font-size: 19px;
+    line-height: 1;
   }
   .links {
     display: flex;

@@ -4,11 +4,12 @@
  * The <head> script in BaseLayout adds html.intro; without it this never shows.
  */
 import { SITE } from '../config/site';
+import Logo from './Logo.astro';
 ---
 
 <div class="intro-curtain" aria-hidden="true">
   <div class="mark">
-    <span class="ln"><span>OFFARCHIVE<em>.</em></span></span>
+    <span class="ln"><span><Logo /></span></span>
   </div>
   <div class="meta label">
     <span>{SITE.tagline}</span>
@@ -36,8 +37,8 @@ import { SITE } from '../config/site';
     pointer-events: none;
   }
   .mark {
-    font: 700 clamp(48px, 10vw, 140px) / 0.9 var(--sans);
-    letter-spacing: -0.07em;
+    font-size: clamp(40px, 9vw, 120px);
+    line-height: 1;
   }
   .mark .ln {
     display: block;

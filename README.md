@@ -25,6 +25,7 @@ Without the `.env` values the site still runs, read-only, from the Markdown file
 | `npm run seed:export` | Turn the Markdown items into `supabase/seed.sql` for the one-time import |
 | `npm run photos` | Batch-prepare photos for Markdown items (optional) |
 | `npm run sample-photos` | Regenerate the stamped **SAMPLE** placeholder photos for the demo items (`-- --remove` deletes them) |
+| `npm run brand` | Regenerate the logo files (wordmark, seal, favicon, app icons, avatar) from `tools/brand.mjs`. Ready-to-use files are in `public/brand/` |
 
 Requires Node 18.20+ (Node 22 recommended). On Windows PowerShell, if `npm` is blocked, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once.
 

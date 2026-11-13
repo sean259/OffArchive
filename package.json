@@ -17,7 +17,8 @@
     "db:check": "node --env-file-if-exists=.env tools/check-supabase.mjs",
     "db:login": "npx -y supabase@2 login",
     "db:link": "npx -y supabase@2 link",
-    "db:push": "npx -y supabase@2 db push"
+    "db:push": "npx -y supabase@2 db push",
+    "brand": "node tools/brand.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.7",
@@ -36,6 +37,7 @@
     "@electric-sql/pglite": "^0.5.16",
     "@types/node": "^24.19.2",
     "js-yaml": "^4.3.2",
+    "opentype.js": "^1.3.4",
     "typescript": "^6.0.3",
     "wrangler": "^4.161.0"
   }

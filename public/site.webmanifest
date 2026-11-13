@@ -1,0 +1,13 @@
+{
+  "name": "OFFARCHIVE.",
+  "short_name": "OFFARCHIVE.",
+  "description": "Curated. Collected. Released. A pre-loved archive from Cebu, Philippines.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EFEBE4",
+  "theme_color": "#141412",
+  "icons": [
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

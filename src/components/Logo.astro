@@ -1,0 +1,51 @@
+---
+/**
+ * The OFFARCHIVE. identity as inline SVG (generated outlines from tools/brand.mjs), coloured by CSS
+ * so it follows the light/dark theme: ink (currentColor) + the rust accent.
+ *   <Logo />                 wordmark
+ *   <Logo variant="seal" />  round seal
+ */
+import { WORDMARK, SEAL } from '../lib/brand';
+
+interface Props {
+  variant?: 'wordmark' | 'seal';
+  class?: string;
+  /** Accessible name; omit when the parent link already has one. */
+  title?: string;
+}
+const { variant = 'wordmark', class: cls, title } = Astro.props;
+const a11y = title ? { role: 'img' as const, 'aria-label': title } : { 'aria-hidden': 'true' as const };
+---
+
+{
+  variant === 'wordmark' ? (
+    <svg class:list={['logo', cls]} viewBox={`0 0 ${WORDMARK.width} ${WORDMARK.height}`} {...a11y}>
+      <path fill="currentColor" d={WORDMARK.d} />
+      <circle class="logo-dot" cx={WORDMARK.dot.cx} cy={WORDMARK.dot.cy} r={WORDMARK.dot.r} />
+    </svg>
+  ) : (
+    <svg class:list={['logo seal', cls]} viewBox={`0 0 ${SEAL.size} ${SEAL.size}`} {...a11y}>
+      <g fill="currentColor">
+        <circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" stroke-width="1.6" />
+        <circle cx="100" cy="100" r="64" fill="none" stroke="currentColor" stroke-width="1" />
+        <Fragment set:html={SEAL.ring} />
+      </g>
+      <path class="logo-star" d={SEAL.star} stroke-width="6" stroke-linecap="round" />
+    </svg>
+  )
+}
+
+<style>
+  .logo {
+    display: block;
+    height: 1em;
+    width: auto;
+    overflow: visible;
+  }
+  .logo-dot {
+    fill: var(--accent);
+  }
+  .logo-star {
+    stroke: var(--accent);
+  }
+</style>
