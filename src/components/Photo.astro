@@ -15,15 +15,30 @@ interface Props {
   loading?: 'eager' | 'lazy';
   class?: string;
   hidden?: boolean;
+  /** Don't download until a script copies data-src into src (extra photos in a browsable card). */
+  defer?: boolean;
+  /** Extra attributes, e.g. data-i. */
+  [key: `data-${string}`]: string | number | undefined;
 }
 
-const { photo, alt, sizes, widths = [400, 800, 1200], loading = 'lazy', class: cls, hidden } = Astro.props;
+const { photo, alt, sizes, widths = [400, 800, 1200], loading = 'lazy', class: cls, hidden, defer = false, ...data } = Astro.props;
 ---
 
 {
   isRemote(photo) ? (
-    <img src={photo.src} alt={alt} loading={loading} decoding="async" class={cls} hidden={hidden} width={photo.width} height={photo.height} />
+    <img
+      src={defer ? undefined : photo.src}
+      data-src={defer ? photo.src : undefined}
+      alt={alt}
+      loading={loading}
+      decoding="async"
+      class={cls}
+      hidden={hidden}
+      width={photo.width}
+      height={photo.height}
+      {...data}
+    />
   ) : (
-    <Image src={photo} alt={alt} widths={widths} sizes={sizes} loading={loading} class={cls} hidden={hidden} />
+    <Image src={photo} alt={alt} widths={widths} sizes={sizes} loading={loading} class={cls} hidden={hidden} {...data} />
   )
 }

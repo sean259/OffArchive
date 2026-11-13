@@ -1,9 +1,12 @@
 ---
 /**
- * The 4:5 image frame for an item. Shows the cover photo (and swaps to the
- * second photo on hover, if there is one), otherwise the line illustration.
- * Shares a view-transition name with the item page so the image morphs
- * between the grid and the detail page.
+ * The 4:5 image frame for an item: its photos, or the line illustration if it has none.
+ * Shares a view-transition name with the item page so the image morphs between grid and detail.
+ *
+ * `browse` (product cards): every photo is stacked in the frame and scripts/media.ts lets people
+ * flip through them: move the mouse across the photo or use the ‹ › arrows on desktop, swipe on
+ * phones. Extra photos download only once someone starts browsing that card.
+ * Without `browse`, the second photo simply shows on hover.
  */
 import type { Item } from '../lib/items';
 import Photo from './Photo.astro';
@@ -18,6 +21,8 @@ interface Props {
   caption?: string;
   /** Set false for duplicate copies (e.g. hover previews) to keep transition names unique. */
   transition?: boolean;
+  /** Let people flip through all photos (product cards). */
+  browse?: boolean;
 }
 
 const {
@@ -27,23 +32,54 @@ const {
   badge = true,
   caption,
   transition = true,
+  browse = false,
 } = Astro.props;
-const [cover, alt] = item.data.images;
+const images = item.data.images;
+const cover = images[0];
+const photos = browse ? images.slice(0, 8) : images.slice(0, 2);
+const multi = browse && photos.length > 1;
+const title = item.data.title;
 ---
 
 <div
-  class:list={['frame media', { swap: Boolean(alt), pf: Boolean(cover), 'pf-art': !cover }]}
+  class:list={['frame media', { swap: !browse && photos.length > 1, multi, pf: Boolean(cover), 'pf-art': !cover }]}
   style={transition ? `view-transition-name: item-${item.id}` : undefined}
+  data-media={multi ? photos.length : undefined}
 >
   {badge && <StatusBadge status={item.data.status} />}
   {
     cover ? (
-      <>
-        <Photo photo={cover} alt={item.data.alt ?? item.data.title} sizes={sizes} loading={eager ? 'eager' : 'lazy'} class="photo" />
-        {alt && <Photo photo={alt} alt="" sizes={sizes} class="photo alt" />}
-      </>
+      photos.map((p, i) => (
+        <Photo
+          photo={p}
+          alt={i === 0 ? (item.data.alt ?? title) : ''}
+          sizes={sizes}
+          loading={i === 0 && eager ? 'eager' : 'lazy'}
+          class={i === 0 ? 'photo is-on' : browse ? 'photo' : 'photo alt'}
+          defer={browse && i > 0}
+          data-i={browse ? i : undefined}
+        />
+      ))
     ) : (
       <Illustration kind={item.data.art} />
+    )
+  }
+  {
+    multi && (
+      <>
+        <div class="pips" aria-hidden="true">
+          {photos.map((_, i) => (
+            <span class:list={{ on: i === 0 }} />
+          ))}
+        </div>
+        <button type="button" class="nav prev" data-media-nav="-1" aria-label={`Previous photo of ${title}`}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" /></svg>
+        </button>
+        <button type="button" class="nav next" data-media-nav="1" aria-label={`Next photo of ${title}`}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" /></svg>
+        </button>
+        <span class="count label" aria-hidden="true"><span data-media-at>1</span>/{photos.length}</span>
+      </>
     )
   }
   {caption && !cover && <span class="cap label muted">{caption}</span>}
@@ -63,11 +99,137 @@ const [cover, alt] = item.data.images;
       transform 1.2s var(--ease),
       opacity 0.6s var(--ease);
   }
+  /* Simple mode: the second photo shows on hover. */
   .media :global(.photo.alt) {
     opacity: 0;
   }
   :global(.card:hover) .swap :global(.photo.alt) {
     opacity: 1;
+  }
+
+  /* Browse mode: the frame sits above the card's full-card link so its arrows can be clicked;
+     clicking the photo itself still opens the piece (scripts/media.ts). */
+  .multi {
+    z-index: 2;
+    cursor: pointer;
+  }
+  /* Only the current photo is visible; a quick cross-fade between them. */
+  .multi :global(.photo:not(.is-on)) {
+    opacity: 0;
+  }
+  .multi :global(.photo) {
+    transition:
+      transform 1.2s var(--ease),
+      opacity 0.32s ease;
+  }
+  .pips {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    z-index: 3;
+    display: flex;
+    gap: 4px;
+    width: min(38%, 140px);
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.4s var(--ease);
+    pointer-events: none;
+  }
+  /* White bars with a hairline outline read on both light and dark photos. */
+  .pips span {
+    flex: 1;
+    height: 3px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.45);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.28);
+    transition: background 0.3s;
+  }
+  .pips span.on {
+    background: #fff;
+  }
+  .nav {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin-top: -17px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    color: var(--ink);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    cursor: pointer;
+    opacity: 0;
+    transition:
+      opacity 0.35s var(--ease),
+      transform 0.35s var(--ease);
+  }
+  .nav svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .prev {
+    left: 10px;
+    transform: translateX(-6px);
+  }
+  .next {
+    right: 10px;
+    transform: translateX(6px);
+  }
+  .count {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 2;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    color: var(--ink);
+    font-size: 9px;
+    pointer-events: none;
+  }
+  /* Desktop: controls appear on hover / keyboard focus. */
+  @media (hover: hover) {
+    /* Cards layer a full-card link on top, so react to the card being hovered. */
+    :global(.card:hover) .multi .pips,
+    :global(.card:hover) .multi .nav,
+    .multi:hover .pips,
+    .multi:hover .nav,
+    .multi:focus-within .pips,
+    .multi:focus-within .nav {
+      opacity: 1;
+      transform: none;
+    }
+    :global(.card:hover) .multi .count {
+      opacity: 0;
+    }
+    .nav:hover {
+      background: var(--paper);
+    }
+  }
+  /* Touch: no arrows (swipe instead); the dots stay visible so people know there's more. */
+  @media (hover: none) {
+    .nav {
+      display: none;
+    }
+    .pips {
+      opacity: 1;
+      top: auto;
+      bottom: 14px;
+    }
+    .count {
+      display: none;
+    }
   }
   .cap {
     position: absolute;

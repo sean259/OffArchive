@@ -72,7 +72,8 @@ if (prev) {
 
 /* ── Fade photos in as they arrive (only ones still loading, so cached photos show instantly) ── */
 document.querySelectorAll<HTMLImageElement>('img.photo:not(.alt)').forEach((img) => {
-  if (img.complete) return;
+  // Skip photos that aren't showing yet (extra card photos load on demand).
+  if (img.complete || img.dataset.src || (img.dataset.i && img.dataset.i !== '0')) return;
   img.classList.add('fade-in');
   const done = () => img.classList.add('is-loaded');
   img.addEventListener('load', done, { once: true });

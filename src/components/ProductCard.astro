@@ -40,7 +40,7 @@ const sold = status === 'sold' && dimSold;
   data-fit={fit ? JSON.stringify(fit) : undefined}
 >
   <div class="media-wrap">
-    <ProductMedia item={item} eager={eager} sizes={sizes} transition={transition} />
+    <ProductMedia item={item} eager={eager} sizes={sizes} transition={transition} browse />
     <SaveButton id={item.id} title={title} class="card-save" />
     <button type="button" class="view label" data-quick={item.id} aria-label={`Quick view: ${title}`}>
       Quick view <span aria-hidden="true">+</span>
@@ -174,7 +174,7 @@ const sold = status === 'sold' && dimSold;
       transform: translateY(6px);
     }
   }
-  .card:hover :global(.photo:not(.alt)) {
+  .card:hover :global(.photo.is-on) {
     transform: scale(1.04);
   }
   .card:hover :global(.art) {
