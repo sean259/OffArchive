@@ -1,0 +1,338 @@
+---
+/**
+ * Released pieces drifting slowly right → left: quiet proof that things sell.
+ * Eases to a stop on hover/focus/touch, can be dragged or flicked (with momentum) and
+ * nudged with a trackpad. Without JS or with reduced motion it's a plain scrollable row.
+ * With fewer than MIN_STRIP pieces only the link row shows (a strip of repeats looks broken).
+ */
+import ProductMedia from './ProductMedia.astro';
+import { catalogNo, itemPath, type Item } from '../lib/items';
+import { peso } from '../lib/format';
+
+interface Props {
+  /** Sold items, newest first. */
+  items: Item[];
+}
+
+const MIN_STRIP = 3;
+const MAX_STRIP = 12;
+const { items } = Astro.props;
+const total = items.length;
+const pieces = items.slice(0, MAX_STRIP);
+const showStrip = pieces.length >= MIN_STRIP;
+// Repeat short lists so one group is wider than a wide screen; the copy group makes the loop seamless.
+const reps = Math.max(1, Math.ceil(10 / Math.max(1, pieces.length)));
+const run = Array.from({ length: reps }, () => pieces).flat();
+---
+
+{
+  total > 0 && (
+    <div class="released">
+      <div class="wrap">
+        <a class="head rv" href="/released/">
+          <span class="label muted">Already found a home</span>
+          <span class="serif">
+            {total} released {total === 1 ? 'piece' : 'pieces'} <em>→</em>
+          </span>
+        </a>
+      </div>
+
+      {showStrip && (
+        <div class="strip rv" data-strip role="region" aria-label="Recently released pieces">
+          <div class="track" data-track>
+            {[0, 1].map((copy) => (
+              <ul class="group" inert={copy === 1 ? true : undefined} aria-hidden={copy === 1 ? 'true' : undefined}>
+                {run.map((item, i) => {
+                  const dup = copy === 1 || i >= pieces.length;
+                  return (
+                    <li class:list={['rcard', { dup }]} inert={dup && copy === 0 ? true : undefined} aria-hidden={dup && copy === 0 ? 'true' : undefined}>
+                      <a href={itemPath(item)} data-cursor-label="View" draggable="false">
+                        <ProductMedia item={item} badge={false} transition={false} sizes="(max-width: 760px) 44vw, 240px" />
+                        <span class="cap">
+                          <span class="label muted">№ {catalogNo(item)} · Released</span>
+                          <span class="t">{item.data.title}</span>
+                          <s class="num">{peso(item.data.price)}</s>
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.querySelectorAll<HTMLElement>('[data-strip]').forEach((strip) => {
+    if (reduce) return;
+    const track = strip.querySelector<HTMLElement>('[data-track]')!;
+    const group = track.firstElementChild as HTMLElement;
+    strip.classList.add('live');
+
+    const BASE = 34; // drift speed, px per second
+    let width = group.offsetWidth;
+    let x = 0; // how far the track has moved left
+    let speed = BASE;
+    let fling = 0; // momentum left over from a drag, px per second
+    let paused = false; // hover / focus
+    let held = false; // finger resting on it
+    let raf = 0;
+    let last = 0;
+
+    new ResizeObserver(() => (width = group.offsetWidth || width)).observe(group);
+    const wrap = (v: number) => ((v % width) + width) % width;
+
+    const frame = (t: number) => {
+      const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
+      last = t;
+      if (!drag.active) {
+        const target = paused || held ? 0 : BASE;
+        speed += (target - speed) * Math.min(1, dt * 3.5); // ease in and out of stops
+        fling *= Math.pow(0.03, dt);
+        if (Math.abs(fling) < 1) fling = 0;
+        x = wrap(x + (speed + fling) * dt);
+      }
+      track.style.transform = `translate3d(${(-x).toFixed(2)}px, 0, 0)`;
+      raf = requestAnimationFrame(frame);
+    };
+    const start = () => {
+      if (raf) return;
+      last = 0;
+      raf = requestAnimationFrame(frame);
+    };
+    const stop = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    // Only animate while on screen and the tab is visible.
+    let onScreen = false;
+    const sync = () => (onScreen && !document.hidden ? start() : stop());
+    new IntersectionObserver(([e]) => {
+      onScreen = e.isIntersecting;
+      sync();
+    }).observe(strip);
+    document.addEventListener('visibilitychange', sync);
+
+    strip.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && (paused = true));
+    strip.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && (paused = false));
+    strip.addEventListener('focusin', () => (paused = true));
+    strip.addEventListener('focusout', () => (paused = false));
+
+    /* Drag / flick. A press only becomes a drag after a few pixels, so taps still open the piece. */
+    const drag = { active: false, id: -1, startX: 0, startOffset: 0, lastX: 0, lastT: 0, v: 0, suppressClick: false };
+    strip.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      drag.id = e.pointerId;
+      drag.startX = drag.lastX = e.clientX;
+      drag.startOffset = x;
+      drag.lastT = e.timeStamp;
+      drag.v = 0;
+      if (e.pointerType !== 'mouse') held = true;
+    });
+    strip.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.startX;
+      if (!drag.active && Math.abs(dx) > 6) {
+        drag.active = true;
+        fling = 0;
+        speed = 0;
+        strip.setPointerCapture(e.pointerId);
+        strip.classList.add('grabbing');
+      }
+      if (!drag.active) return;
+      const dt = Math.max(1, e.timeStamp - drag.lastT);
+      drag.v = drag.v * 0.6 + (((drag.lastX - e.clientX) / dt) * 1000) * 0.4;
+      drag.lastX = e.clientX;
+      drag.lastT = e.timeStamp;
+      x = wrap(drag.startOffset - dx);
+    });
+    const end = (e: PointerEvent) => {
+      if (e.pointerId !== drag.id) return;
+      held = false;
+      drag.id = -1;
+      if (!drag.active) return;
+      drag.active = false;
+      drag.suppressClick = true;
+      setTimeout(() => (drag.suppressClick = false));
+      fling = Math.max(-2400, Math.min(2400, drag.v)) - BASE;
+      strip.classList.remove('grabbing');
+    };
+    strip.addEventListener('pointerup', end);
+    strip.addEventListener('pointercancel', end);
+    // A drag that ends over a card shouldn't open it.
+    strip.addEventListener(
+      'click',
+      (e) => {
+        if (drag.suppressClick) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      true,
+    );
+    strip.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // Sideways trackpad swipes move it too; vertical wheel still scrolls the page.
+    strip.addEventListener(
+      'wheel',
+      (e) => {
+        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+        e.preventDefault();
+        x = wrap(x + e.deltaX);
+      },
+      { passive: false },
+    );
+  });
+</script>
+
+<style>
+  .released {
+    margin-top: 72px;
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 28px 0;
+    border-block: 1px solid var(--line);
+    transition:
+      padding 0.6s var(--ease),
+      background 0.4s;
+  }
+  .head .serif {
+    font-size: clamp(28px, 3vw, 44px);
+    line-height: 1;
+  }
+  .head em {
+    color: var(--accent);
+    display: inline-block;
+    transition: transform 0.6s var(--ease);
+  }
+  .head:hover {
+    padding-inline: 20px;
+    background: var(--paper-2);
+  }
+  .head:hover em {
+    transform: translateX(8px);
+  }
+
+  /* Base (no JS / reduced motion): a plain row you scroll sideways. */
+  .strip {
+    --card: clamp(150px, 17vw, 240px);
+    --gap: clamp(14px, 1.6vw, 24px);
+    margin-top: 36px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px var(--gutter) 8px;
+  }
+  .strip::-webkit-scrollbar {
+    display: none;
+  }
+  .track {
+    display: flex;
+    width: max-content;
+  }
+  .group {
+    display: flex;
+    gap: var(--gap);
+    margin: 0;
+    padding: 0 var(--gap) 0 0; /* trailing gap, so two groups butt together seamlessly */
+    list-style: none;
+  }
+  .group + .group,
+  .dup {
+    display: none;
+  }
+
+  /* Live: the track drifts; edges fade into the paper. */
+  .strip:global(.live) {
+    overflow: hidden;
+    padding-inline: 0;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+    mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  }
+  .strip:global(.live) .track {
+    will-change: transform;
+  }
+  .strip:global(.live) .group + .group {
+    display: flex;
+  }
+  .strip:global(.live) .dup {
+    display: block;
+  }
+  .strip:global(.grabbing) {
+    cursor: grabbing;
+  }
+  .strip:global(.grabbing) a {
+    pointer-events: none;
+  }
+
+  .rcard {
+    width: var(--card);
+    flex: none;
+  }
+  .rcard a {
+    display: block;
+    -webkit-user-drag: none;
+  }
+  .rcard :global(.frame) {
+    transition: translate 0.6s var(--ease);
+  }
+  .rcard :global(.photo),
+  .rcard :global(.art) {
+    transition: transform 1s var(--ease);
+  }
+  .rcard a:hover :global(.frame) {
+    translate: 0 -6px;
+  }
+  .rcard a:hover :global(.photo.is-on),
+  .rcard a:hover :global(.art) {
+    transform: scale(1.05);
+  }
+  .rcard :global(img) {
+    pointer-events: none;
+  }
+  .cap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+  }
+  .cap .label {
+    font-size: 10px;
+  }
+  .t {
+    font: 400 19px/1.1 var(--display);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cap s {
+    font: 500 13px var(--sans);
+    color: var(--muted);
+  }
+  .rcard a:hover .t {
+    color: var(--accent);
+  }
+
+  @media (max-width: 760px) {
+    .released {
+      margin-top: 56px;
+    }
+    .t {
+      font-size: 17px;
+    }
+  }
+</style>

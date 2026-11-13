@@ -14,9 +14,8 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   /** Live items only (available + reserved). Sold pieces are on /released/. */
   items: Item[];
-  releasedCount?: number;
 }
-const { items, releasedCount = 0 } = Astro.props;
+const { items } = Astro.props;
 const countIn = (name: string) => items.filter((i) => i.data.category === name).length;
 ---
 
@@ -177,17 +176,9 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
       <p class="muted">Check back after the next drop, or clear the filters.</p>
     </div>
 
-    {
-      releasedCount > 0 && (
-        <a class="released rv" href="/released/">
-          <span class="label muted">Already found a home</span>
-          <span class="serif">
-            {releasedCount} released {releasedCount === 1 ? 'piece' : 'pieces'} <em>→</em>
-          </span>
-        </a>
-      )
-    }
   </div>
+  <!-- Released pieces (ReleasedStrip), full width under the grid -->
+  <slot />
 </section>
 
 <script>
@@ -639,32 +630,6 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
     font-weight: 500;
   }
 
-  .released {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 16px;
-    margin-top: 72px;
-    padding: 28px 0;
-    border-block: 1px solid var(--line);
-    transition: padding 0.6s var(--ease), background 0.4s;
-  }
-  .released .serif {
-    font-size: clamp(28px, 3vw, 44px);
-    line-height: 1;
-  }
-  .released em {
-    color: var(--accent);
-    display: inline-block;
-    transition: transform 0.6s var(--ease);
-  }
-  .released:hover {
-    padding-inline: 20px;
-    background: var(--paper-2);
-  }
-  .released:hover em {
-    transform: translateX(8px);
-  }
   .empty {
     padding: 64px 0;
     text-align: center;
