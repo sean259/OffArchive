@@ -22,7 +22,7 @@ import {
   STATUS_LABEL,
 } from '../../lib/items';
 import { peso, shortDate } from '../../lib/format';
-import { SITE } from '../../config/site';
+import { SITE, sizeSpec } from '../../config/site';
 
 const slug = Astro.params.slug ?? '';
 // The request's client lets owners and admins preview listings that aren't public yet.
@@ -51,12 +51,14 @@ const sameCategory = items.filter((i) => i.id !== item.id && i.data.category ===
 const others = items.filter((i) => i.id !== item.id && i.data.category !== d.category && i.data.status === 'available');
 const related = [...sameCategory, ...others].slice(0, 4);
 
-const message = `Hi! I'm interested in the ${d.title} (${d.size}, ${peso(d.price)}) on OFFARCHIVE. Is it still available? ${pageUrl}`;
+const sizeName = sizeSpec(d.category)?.label ?? 'Size';
+const hasSize = Boolean(sizeSpec(d.category) && d.size);
+const message = `Hi! I'm interested in the ${d.title} (${[hasSize && d.size, peso(d.price)].filter(Boolean).join(', ')}) on OFFARCHIVE. Is it still available? ${pageUrl}`;
 const contactHref = seller.messenger ? messengerFor(seller) : seller.phone ? `sms:${seller.phone.replace(/\s/g, '')}` : null;
 
 const cover = d.images[0];
 const ogImage = !cover ? '/og/default.png' : isRemote(cover) ? cover.src : (await getImage({ src: cover, width: 1200, format: 'jpeg' })).src;
-const description = `${d.title} — ${d.condition} condition, size ${d.size}, ${peso(d.price)}. ${STATUS_LABEL[d.status]} on ${SITE.name}`;
+const description = `${d.title} — ${d.condition} condition, ${hasSize ? `${sizeName.toLowerCase()} ${d.size}, ` : ''}${peso(d.price)}. ${STATUS_LABEL[d.status]} on ${SITE.name}`;
 
 const availability =
   d.status === 'available' ? 'https://schema.org/InStock' : d.status === 'reserved' ? 'https://schema.org/LimitedAvailability' : 'https://schema.org/SoldOut';
@@ -141,10 +143,14 @@ const trust = seller.official
         </div>
 
         <dl class="specs">
-          <div>
-            <dt class="label muted">Size</dt>
-            <dd>{d.size}</dd>
-          </div>
+          {
+            hasSize && (
+              <div>
+                <dt class="label muted">{sizeName}</dt>
+                <dd>{d.size}</dd>
+              </div>
+            )
+          }
           <div>
             <dt class="label muted">Condition</dt>
             <dd><a href="/how-to-buy/#condition" class="cond">{d.condition}</a></dd>
@@ -324,7 +330,7 @@ const trust = seller.official
         <div>
           <span class="bt">{d.title}</span>
           <span class="label muted">
-            {peso(d.price)} · {d.size}
+            {peso(d.price)}{hasSize && ` · ${d.size}`}
           </span>
         </div>
         <MessengerButton message={message} label="Message" href={contactHref ?? undefined} />

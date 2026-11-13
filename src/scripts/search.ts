@@ -50,7 +50,7 @@ if (dialog) {
             <span class="r-media">${thumbHtml(e)}</span>
             <span>
               <span class="r-title">${highlight(e.title, terms)}</span>
-              <span class="label muted">№ ${e.no} · ${esc(e.category)} · ${esc(e.size)}</span>
+              <span class="label muted">№ ${[e.no, esc(e.category), esc(e.size)].filter(Boolean).join(' · ')}</span>
             </span>
             <span class="r-side">
               <span class="num">${e.priceLabel}</span>

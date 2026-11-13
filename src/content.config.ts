@@ -15,7 +15,7 @@ const items = defineCollection({
       title: z.string(),
       category: z.enum(CATEGORY_NAMES),
       price: z.number().int().positive(),
-      size: z.string(),
+      size: z.string().default(''),
       condition: z.enum(['Like New', 'Excellent', 'Good', 'Fair']),
       status: z.enum(['available', 'reserved', 'sold']).default('available'),
       listed: z.coerce.date(),

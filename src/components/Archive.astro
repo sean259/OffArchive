@@ -4,7 +4,7 @@
  * Works without JavaScript (grid, everything shown). With JS, filters update in place
  * and stay in the URL (?c=shoes&sort=price-asc&available=1) so views can be shared.
  */
-import { CATEGORIES } from '../config/site';
+import { CATEGORIES, shortCategory } from '../config/site';
 import { categoryOf, catalogNo, itemPath, statusRank, fitData, STATUS_LABEL, type Item } from '../lib/items';
 import { peso } from '../lib/format';
 import ProductCard from './ProductCard.astro';
@@ -102,7 +102,7 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
             <a class:list={['irow', { sold: item.data.status === 'sold' }]} href={itemPath(item)} data-peek>
               <span class="label muted">{catalogNo(item)}</span>
               <span class="t">{item.data.title}</span>
-              <span class="label muted c">{item.data.category}</span>
+              <span class="label muted c">{shortCategory(item.data.category)}</span>
               <span class="label muted s">{item.data.size}</span>
               <span class="label st">
                 <span class:list={['dot', item.data.status]} />

@@ -35,7 +35,7 @@ function renderDrawer(ids: string[]) {
       <li class="sv ${e.status}">
         <a class="sv-media" href="${e.url}">${thumbHtml(e)}</a>
         <div class="sv-body">
-          <span class="label muted">№ ${e.no} · ${esc(e.size)}</span>
+          <span class="label muted">№ ${e.no}${e.size ? ` · ${esc(e.size)}` : ''}</span>
           <a class="sv-title" href="${e.url}">${esc(e.title)}</a>
           <span class="label sv-status"><span class="dot ${e.status}"></span>${STATUS_TEXT[e.status]}</span>
         </div>
@@ -60,7 +60,7 @@ function renderDrawer(ids: string[]) {
       const seller = group[0].seller;
       const msg =
         `Hi! I'm interested in ${group.length === 1 ? 'this piece' : 'these pieces'} on OFFARCHIVE.:\n` +
-        group.map((e) => `• ${e.title} (${e.size}, ${e.priceLabel}) — ${origin}${e.url}`).join('\n') +
+        group.map((e) => `• ${e.title} (${[e.size, e.priceLabel].filter(Boolean).join(', ')}) — ${origin}${e.url}`).join('\n') +
         `\nAre ${group.length === 1 ? 'it' : 'they'} still available?`;
       const who = groups.size > 1 ? ` ${esc(seller.name)}` : '';
       const count = group.length === 1 ? 'this piece' : `these ${group.length}`;

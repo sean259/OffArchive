@@ -88,7 +88,7 @@ const STATUSES = ['pending', 'available', 'reserved', 'sold', 'rejected', 'hidde
                       {l.data.title} ↗
                     </a>
                     <span>
-                      <strong class="num">{peso(l.data.price)}</strong> · {l.data.size} · {l.data.condition}
+                      <strong class="num">{peso(l.data.price)}</strong> · {[l.data.category, l.data.size, l.data.condition].filter(Boolean).join(' · ')}
                       {l.data.brand && ` · ${l.data.brand}`}
                     </span>
                     {l.body && <p class="muted desc">{l.body}</p>}

@@ -1,6 +1,7 @@
 ---
 import { categoryOf, itemPath, catalogNo, statusRank, fitData, type Item } from '../lib/items';
 import { peso } from '../lib/format';
+import { shortCategory } from '../config/site';
 import ProductMedia from './ProductMedia.astro';
 import SaveButton from './SaveButton.astro';
 
@@ -59,7 +60,7 @@ const sold = status === 'sold' && dimSold;
     <h3><a class="stretch" href={itemPath(item)}>{title}</a></h3>
     <div class="line">
       <span class="price num">{status === 'sold' ? <s>{peso(price)}</s> : peso(price)}</span>
-      <span class="label muted">{category.name === 'Books & Supplies' ? 'Books' : category.name} · {size} · {condition}</span>
+      <span class="label muted">{[shortCategory(category.name), size, condition].filter(Boolean).join(' · ')}</span>
     </div>
   </div>
 </article>

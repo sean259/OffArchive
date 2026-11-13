@@ -65,7 +65,17 @@ export const listingInput = z.object({
       Object.fromEntries(Object.entries(m).filter(([k, v]) => (MEASURE_KEYS as readonly string[]).includes(k) && v)),
     ),
   images: z.array(photoPath).min(1, 'Add at least one photo.').max(8, 'Up to 8 photos.'),
-});
+})
+  // Size, fit and measurements only apply where they make sense; other categories drop them.
+  .superRefine((v, ctx) => {
+    if (sizeSpec(v.category)?.required && !v.size) ctx.addIssue({ code: 'custom', path: ['size'], message: 'Add a size.' });
+  })
+  .transform((v) => ({
+    ...v,
+    size: sizeSpec(v.category) ? v.size : '',
+    fit: isFitted(v.category) ? v.fit : null,
+    measurements: isFitted(v.category) ? v.measurements : {},
+  }));
 
 export type ListingInput = z.infer<typeof listingInput>;
 

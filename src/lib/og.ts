@@ -107,7 +107,7 @@ export function itemCard(opts: { no: string; title: string; category: string; pr
           'div',
           { gap: 28, alignItems: 'center' },
           h('div', { alignItems: 'center', gap: 10 }, h('div', { width: 12, height: 12, borderRadius: 6, background: dot }), label(statusText, C.ink)),
-          label(`Size ${opts.size}`),
+          ...(opts.size ? [label(opts.size)] : []),
           label(opts.condition),
         ),
       ),

@@ -1,5 +1,5 @@
 /**
- * Security test for supabase/migrations/20261113000001_marketplace.sql.
+ * Security test for the migrations in supabase/migrations (marketplace + categories).
  * Runs the real migration in PGlite (Postgres compiled to WASM) with a stub of Supabase's
  * auth schema, then acts as anonymous visitors, sellers and admins to prove the rules hold.
  *
@@ -27,7 +27,9 @@ await db.exec(`
   grant usage on schema auth to anon, authenticated;
   grant execute on function auth.uid() to anon, authenticated;
 `);
-await db.exec(await readFile(new URL('../migrations/20261113000001_marketplace.sql', import.meta.url), 'utf8'));
+for (const file of ['20261113000001_marketplace.sql', '20261113000003_more_categories.sql']) {
+  await db.exec(await readFile(new URL(`../migrations/${file}`, import.meta.url), 'utf8'));
+}
 await db.exec(`
   grant usage on schema public to anon, authenticated;
   grant select, insert, update, delete on all tables in schema public to anon, authenticated;
@@ -133,6 +135,16 @@ ok("anonymous visitors can't create listings");
 
 await fails(bob, `insert into public.listings (seller_id, slug, title, category, price, size, condition) values ($1,'bad-price','Tee tee','Clothing',-5,'M','Good')`, [bob], /check constraint/);
 ok('invalid data is rejected by constraints (e.g. negative price)');
+
+const [perfume] = await insertListing(carol, listing('carol-perfume', { title: 'Eau de Parfum', category: 'Fragrance', size: '' }));
+const [other] = await insertListing(carol, listing('carol-bag', { title: 'Canvas Tote', category: 'Others', size: '' }));
+assert.ok(perfume.id && other.id);
+await as(carol, `delete from public.listings where slug in ('carol-perfume', 'carol-bag')`);
+ok('Fragrance and Others listings can be created without a size');
+
+await fails(bob, `insert into public.listings (seller_id, slug, title, category, price, size, condition) values ($1,'no-size','Some tee','Clothing',100,'','Good')`, [bob], /check constraint/);
+await fails(bob, `insert into public.listings (seller_id, slug, title, category, price, size, condition) values ($1,'bad-cat','Some thing','Gadgets',100,'','Good')`, [bob], /check constraint/);
+ok('clothing and shoes still require a size; unknown categories are rejected');
 
 console.log('\nVisibility');
 let visible = await as('anon', `select slug from public.listings order by slug`);

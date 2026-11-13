@@ -18,6 +18,7 @@ Expect about 20–30 minutes. Everything here fits in Supabase's free tier.
 
 1. [`supabase/migrations/20261113000001_marketplace.sql`](../supabase/migrations/20261113000001_marketplace.sql): profiles, listings, roles, row-level security
 2. [`supabase/migrations/20261113000002_storage.sql`](../supabase/migrations/20261113000002_storage.sql): the `listing-images` photo bucket and its rules
+3. [`supabase/migrations/20261113000003_more_categories.sql`](../supabase/migrations/20261113000003_more_categories.sql): adds the Fragrance and Others categories (size optional outside clothing and shoes)
 
 Each should end with "Success. No rows returned".
 
