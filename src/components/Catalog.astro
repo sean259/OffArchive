@@ -7,6 +7,7 @@ import { getImage } from 'astro:assets';
 import { getItems, catalogNo, itemPath, isRemote, messengerFor } from '../lib/items';
 import { peso } from '../lib/format';
 import { ART } from '../lib/art';
+import { sizeSpec } from '../config/site';
 
 const items = await getItems();
 const entries = await Promise.all(
@@ -14,6 +15,11 @@ const entries = await Promise.all(
     const cover = item.data.images[0];
     const thumb = !cover ? undefined : isRemote(cover) ? cover.src : (await getImage({ src: cover, width: 160, format: 'webp' })).src;
     const s = item.data.seller;
+    // Up to 4 medium photos for Quick view (uploaded photos are already web-sized).
+    const photos = await Promise.all(
+      item.data.images.slice(0, 4).map(async (p) => (isRemote(p) ? p.src : (await getImage({ src: p, width: 800, format: 'webp' })).src)),
+    );
+    const d = item.data;
     return [
       item.id,
       {
@@ -30,6 +36,12 @@ const entries = await Promise.all(
         status: item.data.status,
         url: itemPath(item),
         thumb,
+        photos,
+        sizeLabel: sizeSpec(d.category)?.label ?? 'Size',
+        fit: d.fit ?? null,
+        flaws: d.flaws,
+        blurb: item.body.length > 180 ? item.body.slice(0, 177).trimEnd() + '…' : item.body,
+        listed: d.listed.getTime(),
         art: ART[item.data.art],
         seller: { username: s.username, name: s.name, official: s.official, messenger: s.messenger ? messengerFor(s) : null, phone: s.phone },
       },

@@ -15,6 +15,8 @@ import Catalog from '../components/Catalog.astro';
 import Cursor from '../components/Cursor.astro';
 import Intro from '../components/Intro.astro';
 import Analytics from '../components/Analytics.astro';
+import QuickView from '../components/QuickView.astro';
+import MobileBar from '../components/MobileBar.astro';
 import { SITE } from '../config/site';
 import { getItems, isDegraded } from '../lib/items';
 
@@ -85,6 +87,7 @@ const degraded = isDegraded();
   </head>
   <body>
     <Intro />
+    <div class="progress" aria-hidden="true"></div>
     <a class="skip" href="#main">Skip to content</a>
     {
       degraded ? (
@@ -110,6 +113,8 @@ const degraded = isDegraded();
     <Footer />
     <SavedDrawer />
     <SearchDialog />
+    <QuickView />
+    <MobileBar />
     <Toast />
     <Cursor />
     <div class="peek" data-peek-layer aria-hidden="true"></div>
@@ -120,6 +125,7 @@ const degraded = isDegraded();
       import '../scripts/saved-ui';
       import '../scripts/search';
       import '../scripts/fit-ui';
+      import '../scripts/engage';
     </script>
   </body>
 </html>

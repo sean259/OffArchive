@@ -41,7 +41,14 @@ const sold = status === 'sold' && dimSold;
   <div class="media-wrap">
     <ProductMedia item={item} eager={eager} sizes={sizes} transition={transition} />
     <SaveButton id={item.id} title={title} class="card-save" />
-    <span class="view label" aria-hidden="true">View piece <span>→</span></span>
+    <button type="button" class="view label" data-quick={item.id} aria-label={`Quick view: ${title}`}>
+      Quick view <span aria-hidden="true">+</span>
+    </button>
+    <button type="button" class="qv-touch round" data-quick={item.id} aria-label={`Quick view: ${title}`}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"></path><circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    </button>
   </div>
   <div class="meta">
     <div class="line label muted">
@@ -105,7 +112,10 @@ const sold = status === 'sold' && dimSold;
     left: 12px;
     right: 12px;
     bottom: 12px;
-    z-index: 2;
+    z-index: 3;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
     display: flex;
     justify-content: space-between;
     padding: 11px 14px;
@@ -118,9 +128,50 @@ const sold = status === 'sold' && dimSold;
       opacity 0.5s var(--ease),
       transform 0.5s var(--ease);
   }
-  .card:hover .view {
+  .card:hover .view,
+  .view:focus-visible {
     opacity: 1;
     transform: none;
+  }
+  /* Touch screens have no hover: a small round button opens Quick view instead. */
+  .qv-touch {
+    display: none;
+  }
+  @media (hover: none) {
+    .view {
+      display: none;
+    }
+    .qv-touch {
+      display: grid;
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      z-index: 3;
+    }
+  }
+  /* "New since your last visit" (added on the device by scripts/engage.ts) */
+  .media-wrap :global(.new-chip) {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 9px;
+    animation: chip-in 0.7s var(--ease) both 0.3s;
+  }
+  @media (hover: hover) {
+    .card:hover .media-wrap :global(.new-chip) {
+      opacity: 0;
+    }
+  }
+  @keyframes chip-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
   }
   .card:hover :global(.photo:not(.alt)) {
     transform: scale(1.04);

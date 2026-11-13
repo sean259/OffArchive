@@ -14,11 +14,16 @@ const available = count('available');
 const sold = count('sold');
 const latest = [...items].sort((a, b) => b.data.listed.getTime() - a.data.listed.getTime())[0];
 
-// Three pieces for the collage: featured first, then the newest available.
+// Three pieces for the collage: photographed pieces first (they carry the hero), then featured, then newest.
+const hasPhoto = (i: Item) => (i.data.images.length > 0 ? 0 : 1);
 const picks = [
   ...items.filter((i) => i.data.featured && i.data.status !== 'sold'),
   ...items.filter((i) => !i.data.featured && i.data.status === 'available'),
-].slice(0, 3);
+]
+  .map((item, order) => ({ item, order }))
+  .sort((a, b) => hasPhoto(a.item) - hasPhoto(b.item) || a.order - b.order)
+  .map((x) => x.item)
+  .slice(0, 3);
 const speeds = ['-0.04', '0.04', '-0.08'];
 ---
 

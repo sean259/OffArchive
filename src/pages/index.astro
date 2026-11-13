@@ -9,6 +9,7 @@ import About from '../components/About.astro';
 import Vouches from '../components/Vouches.astro';
 import SellCTA from '../components/SellCTA.astro';
 import ContactCTA from '../components/ContactCTA.astro';
+import RecentlyViewed from '../components/RecentlyViewed.astro';
 import { getItems, liveItems, soldItems } from '../lib/items';
 import { SITE } from '../config/site';
 
@@ -32,6 +33,7 @@ const jsonLd = {
   <Marquee phrases={['Curated', 'Collected', 'Released', 'A new home for old favorites']} />
   <LatestDrop items={items} />
   <Archive items={live} releasedCount={soldItems(items).length} />
+  <RecentlyViewed />
   <Categories items={items} />
   <SellCTA />
   <About />

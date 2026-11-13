@@ -1,0 +1,93 @@
+---
+/**
+ * "Recently viewed" rail. Empty and hidden until the visitor has looked at a few pieces;
+ * filled on the device by scripts/engage.ts from the embedded catalog (nothing is tracked
+ * on the server).
+ */
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  index?: string;
+}
+const { index = '✳' } = Astro.props;
+---
+
+<section class="recent" data-recent hidden aria-label="Recently viewed">
+  <div class="wrap">
+    <SectionHead index={index} label="Recently viewed">
+      Pick up where you <em>left off.</em>
+      <button slot="aside" type="button" class="link label" data-recent-clear>Clear history</button>
+    </SectionHead>
+    <ol class="rail" data-recent-list></ol>
+  </div>
+</section>
+
+<style>
+  .recent {
+    padding: clamp(64px, 9vw, 120px) 0 0;
+  }
+  .rail {
+    list-style: none;
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 0 var(--gutter) 8px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(150px, 17vw, 230px);
+    gap: clamp(12px, 1.6vw, 20px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--gutter);
+    scrollbar-width: thin;
+  }
+  .rail :global(li) {
+    scroll-snap-align: start;
+    animation: rise-in 0.7s var(--ease) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+  .rail :global(a) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rail :global(.rv-media) {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 5;
+  }
+  .rail :global(.rv-media > img.photo) {
+    position: absolute;
+    object-fit: cover;
+  }
+  .rail :global(.rv-media svg) {
+    width: 50%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    opacity: 0.8;
+    transition: transform 0.7s var(--ease);
+  }
+  .rail :global(a:hover .rv-media svg),
+  .rail :global(a:hover .rv-media img) {
+    transform: scale(1.04);
+  }
+  .rail :global(.rv-media img) {
+    transition: transform 1s var(--ease);
+  }
+  .rail :global(.rv-t) {
+    font: 400 19px/1.1 var(--display);
+  }
+  .rail :global(.rv-meta) {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .rail :global(.sold .rv-media) {
+    opacity: 0.55;
+  }
+</style>

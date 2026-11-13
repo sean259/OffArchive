@@ -13,6 +13,15 @@ export interface CatalogEntry {
   status: 'available' | 'reserved' | 'sold' | 'pending' | 'rejected' | 'hidden';
   url: string;
   thumb?: string;
+  /** Medium photos for Quick view (empty: the illustration is shown). */
+  photos: string[];
+  /** What the size means for this category (Size / Bottle / Format). */
+  sizeLabel: string;
+  fit: string | null;
+  flaws: string;
+  blurb: string;
+  /** Listing time (ms), for "new since your last visit". */
+  listed: number;
   art: string;
   seller: { username: string; name: string; official: boolean; messenger: string | null; phone: string | null };
 }

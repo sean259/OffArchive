@@ -8,6 +8,7 @@ import SaveButton from '../../components/SaveButton.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import FitFinder from '../../components/FitFinder.astro';
 import SellerCard from '../../components/SellerCard.astro';
+import RecentlyViewed from '../../components/RecentlyViewed.astro';
 import {
   getItems,
   getItemBySlug,
@@ -323,6 +324,9 @@ const trust = seller.official
       </section>
     )
   }
+
+  {!preview && <span hidden data-view-item={item.id} />}
+  <RecentlyViewed />
 
   {
     !sold && !preview && contactHref && (

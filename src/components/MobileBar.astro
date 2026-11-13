@@ -1,0 +1,156 @@
+---
+/**
+ * App-style tab bar on phones: Shop, Search, Saved, Sell, Account, always in thumb reach.
+ * Search and Saved reuse the existing dialogs through their data attributes.
+ */
+const path = Astro.url.pathname;
+const signedIn = Boolean(Astro.locals.user);
+const is = (re: RegExp) => re.test(path);
+---
+
+<nav class="mbar" aria-label="Quick navigation" data-mbar>
+  <a href="/#archive" aria-current={path === '/' ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5 12 4l8 5.5V20H4z M9.5 20v-6h5v6"></path></svg>
+    <span>Shop</span>
+  </a>
+  <button type="button" data-search-open aria-haspopup="dialog" aria-controls="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+    <span>Search</span>
+  </button>
+  <a class="sell" href="/sell/" aria-current={is(/^\/sell/) ? 'page' : undefined}>
+    <span class="plus" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+    </span>
+    <span>Sell</span>
+  </a>
+  <button type="button" data-saved-open aria-haspopup="dialog" aria-controls="saved">
+    <span class="ic">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"></path></svg>
+      <span class="badge num" data-saved-count>0</span>
+    </span>
+    <span>Saved</span>
+  </button>
+  <a href={signedIn ? '/account/' : '/login/'} aria-current={is(/^\/(account|admin|login)/) ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c1.2-3.6 3.9-5.5 7-5.5s5.8 1.9 7 5.5"></path></svg>
+    <span>{signedIn ? 'Account' : 'Log in'}</span>
+  </a>
+</nav>
+
+<style>
+  .mbar {
+    display: none;
+  }
+  @media (max-width: 760px) {
+    .mbar {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      z-index: 85;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: end;
+      padding: 8px 6px;
+      border: 1px solid var(--line-strong);
+      border-radius: 22px;
+      background: color-mix(in srgb, var(--paper) 82%, transparent);
+      backdrop-filter: blur(18px) saturate(1.4);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+      box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.5);
+      transition: transform 0.5s var(--ease), opacity 0.4s;
+    }
+    /* Tuck away while a dialog is open, so it never covers the sheet's buttons. */
+    :global(html:has(dialog[open])) .mbar,
+    /* On item pages, the sticky "Message" bar takes over when it appears. */
+    :global(html:has(.buybar.on)) .mbar {
+      transform: translateY(140%);
+      opacity: 0;
+    }
+    .mbar > * {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font: 500 9.5px/1 var(--mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.3s;
+    }
+    .mbar > [aria-current='page'],
+    .mbar > *:active {
+      color: var(--ink);
+    }
+    .mbar svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .ic {
+      position: relative;
+      display: grid;
+    }
+    .badge {
+      position: absolute;
+      top: -5px;
+      right: -9px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font: 600 9px/16px var(--sans);
+      text-align: center;
+    }
+    .badge:is(:empty, [data-zero]) {
+      display: none;
+    }
+    .plus {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      margin-top: -16px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--on-ink);
+      box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.6);
+      transition: transform 0.4s var(--ease);
+    }
+    .sell:active .plus {
+      transform: scale(0.92);
+    }
+    .sell {
+      color: var(--ink) !important;
+    }
+    /* The bar carries Saved and Sell on phones, so the header keeps just the logo, theme and menu. */
+    :global(.tools .saved-btn),
+    :global(.tools .sell-btn),
+    :global(.tools .login-link),
+    :global(.tools .avatar) {
+      display: none !important;
+    }
+    /* Leave room so the bar never hides the end of the page. */
+    :global(body) {
+      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    }
+  }
+</style>
+
+<script>
+  // Hide the "0" badge until something is saved.
+  const sync = () =>
+    document.querySelectorAll<HTMLElement>('[data-mbar] [data-saved-count]').forEach((b) => b.toggleAttribute('data-zero', b.textContent === '0'));
+  sync();
+  addEventListener('saved:change', () => requestAnimationFrame(sync));
+  addEventListener('load', sync);
+</script>
