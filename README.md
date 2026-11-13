@@ -70,6 +70,25 @@ Search the code for `TODO`. Then:
 - [ ] Real photos and measurements on every item
 - [ ] Optional: `analytics`, `newsletter`, `instagram` in `site.ts`
 
+## Branches
+
+| Branch | Purpose |
+|--------|---------|
+| `dev` | Day-to-day work. Commit and push here first. |
+| `main` | What's live. Only updated by merging `dev` once it builds and looks right. |
+
+```bash
+git switch dev                 # work here
+git add -A && git commit -m "Add black denim jacket"
+git push                       # push dev; check the Netlify deploy preview if enabled
+
+npm run build                  # make sure it builds
+git switch main && git merge --ff-only dev && git push   # promote to live
+git switch dev
+```
+
+On Netlify, set the production branch to `main` and turn on branch deploys for `dev` to get a preview URL of every change before it goes live.
+
 ## Deploying (free)
 
 **Netlify** (configured): push to GitHub, then "Add new site → Import from Git". `netlify.toml` sets the build, caching, and headers. Cloudflare Pages and Vercel also work (build `npm run build`, output `dist`).
