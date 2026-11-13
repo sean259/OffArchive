@@ -15,7 +15,8 @@ export const GET: APIRoute = async ({ url, locals, redirect }) => {
   if (!locals.supabase) return redirect('/login/?error=setup');
 
   const { error } = code
-    ? await locals.supabase.auth.exchangeCodeForSession(code)
+    ? // Pass the flow id from the link so an older email's link still finds its own verifier.
+      await locals.supabase.auth.exchangeCodeForSession(code, { flowId: url.searchParams.get('sb_flow_id') ?? undefined })
     : tokenHash
       ? await locals.supabase.auth.verifyOtp({ token_hash: tokenHash, type })
       : { error: new Error('Missing code') };

@@ -16,8 +16,8 @@ Expect about 20–30 minutes. Everything here fits in Supabase's free tier.
 
 **SQL Editor → New query.** Paste and run each file, in order:
 
-1. [`supabase/migrations/0001_marketplace.sql`](../supabase/migrations/0001_marketplace.sql): profiles, listings, roles, row-level security
-2. [`supabase/migrations/0002_storage.sql`](../supabase/migrations/0002_storage.sql): the `listing-images` photo bucket and its rules
+1. [`supabase/migrations/20261113000001_marketplace.sql`](../supabase/migrations/20261113000001_marketplace.sql): profiles, listings, roles, row-level security
+2. [`supabase/migrations/20261113000002_storage.sql`](../supabase/migrations/20261113000002_storage.sql): the `listing-images` photo bucket and its rules
 
 Each should end with "Success. No rows returned".
 
@@ -40,11 +40,13 @@ Each should end with "Success. No rows returned".
 <h2>Your OFFARCHIVE. sign-in code</h2>
 <p style="font-size:32px;letter-spacing:6px;font-family:monospace"><strong>{{ .Token }}</strong></p>
 <p>Enter this code on the sign-in page. It expires in 1 hour.</p>
-<p>Or <a href="{{ .ConfirmationURL }}">tap here to sign in</a> on this device.</p>
+<p>Or <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">tap here to sign in</a>.</p>
 <p style="color:#888">If you didn't request this, you can ignore this email.</p>
 ```
 
 Use the same content for the **Confirm signup** template (first-time sign-ins use it).
+
+> The link uses `token_hash`, so it works in any browser or device. Supabase's default `{{ .ConfirmationURL }}` link only works in the exact browser that requested the code, and fails with "PKCE code verifier not found" when opened from a mail app.
 
 ## 4. Email delivery (required for real users)
 
@@ -55,6 +57,13 @@ Supabase's built-in email only delivers to members of your Supabase team, and on
    - Host `smtp.resend.com`, port `465`, user `resend`, password = your Resend API key
    - Sender: `OFFARCHIVE. <login@your-domain>`
 3. **Authentication → Rate Limits:** raise "emails per hour" to something like 30–100.
+
+**No domain yet? Use Gmail (free, sends to anyone, ~500/day):**
+1. Use a separate shop Gmail. Turn on 2-Step Verification, then create an app password at <https://myaccount.google.com/apppasswords>.
+2. SMTP settings: host `smtp.gmail.com`, port `465`, username = the full Gmail address, password = the 16-character app password **without spaces**, sender email = the same Gmail address.
+3. Supabase's "designed for personal email" warning is only advice and can be ignored. Switch to Resend once you own a domain.
+4. If sending fails, run this in Logs Explorer to see Gmail's reason:
+   `select timestamp, event_message from auth_logs where event_message ilike '%mail%' order by timestamp desc limit 10`
 
 ## 5. Connect the website
 
@@ -113,4 +122,4 @@ From now on, add and edit pieces from **Sell** / **My listings** on the site (wo
 - **No email arrives:** check spam; until step 4 is done, only your Supabase team's addresses receive mail.
 - **"That sign-in link has expired or was opened in a different browser":** use the 6-digit code instead (step 3 template).
 - **"Add a Messenger username or phone number…":** sellers need a contact method before listing (the database enforces it).
-- **Photo upload fails:** the bucket from `0002_storage.sql` is missing, or the file isn't JPG/PNG/WebP.
+- **Photo upload fails:** the bucket from `20261113000002_storage.sql` is missing, or the file isn't JPG/PNG/WebP.

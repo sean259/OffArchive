@@ -1,5 +1,5 @@
 /**
- * Security test for supabase/migrations/0001_marketplace.sql.
+ * Security test for supabase/migrations/20261113000001_marketplace.sql.
  * Runs the real migration in PGlite (Postgres compiled to WASM) with a stub of Supabase's
  * auth schema, then acts as anonymous visitors, sellers and admins to prove the rules hold.
  *
@@ -27,7 +27,7 @@ await db.exec(`
   grant usage on schema auth to anon, authenticated;
   grant execute on function auth.uid() to anon, authenticated;
 `);
-await db.exec(await readFile(new URL('../migrations/0001_marketplace.sql', import.meta.url), 'utf8'));
+await db.exec(await readFile(new URL('../migrations/20261113000001_marketplace.sql', import.meta.url), 'utf8'));
 await db.exec(`
   grant usage on schema public to anon, authenticated;
   grant select, insert, update, delete on all tables in schema public to anon, authenticated;

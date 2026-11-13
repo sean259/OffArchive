@@ -1,4 +1,4 @@
-/** Row shapes for the tables in supabase/migrations/0001_marketplace.sql. */
+/** Row shapes for the tables in supabase/migrations/20261113000001_marketplace.sql. */
 export type Role = 'user' | 'admin';
 export type ListingStatus = 'pending' | 'available' | 'reserved' | 'sold' | 'rejected' | 'hidden';
 

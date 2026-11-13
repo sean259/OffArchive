@@ -13,7 +13,11 @@
     "photos": "node tools/photos.mjs",
     "seed:export": "node tools/export-seed.mjs",
     "astro": "astro",
-    "sample-photos": "node tools/sample-photos.mjs"
+    "sample-photos": "node tools/sample-photos.mjs",
+    "db:check": "node --env-file-if-exists=.env tools/check-supabase.mjs",
+    "db:login": "npx -y supabase@2 login",
+    "db:link": "npx -y supabase@2 link",
+    "db:push": "npx -y supabase@2 db push"
   },
   "dependencies": {
     "@astrojs/netlify": "^6.6.5",

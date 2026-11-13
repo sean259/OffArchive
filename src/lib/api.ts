@@ -1,6 +1,6 @@
 /** Shared helpers for the API routes in src/pages/api. Server-only. */
 import { z } from 'astro/zod';
-import { CATEGORY_NAMES } from '../config/site';
+import { CATEGORY_NAMES, isFitted, sizeSpec } from '../config/site';
 import { ART_KINDS } from './art';
 
 export const json = (data: unknown, status = 200) =>
@@ -46,7 +46,7 @@ export const listingInput = z.object({
   title: z.string().trim().min(3, 'Title is too short.').max(80),
   category: z.enum(CATEGORY_NAMES),
   price: z.coerce.number().int('Price must be a whole number.').min(1, 'Add a price.').max(999999),
-  size: z.string().trim().min(1, 'Add a size.').max(30),
+  size: z.string().trim().max(30).optional().default(''),
   condition: z.enum(CONDITIONS),
   art: z.enum(ART_KINDS),
   brand: optionalText(60),

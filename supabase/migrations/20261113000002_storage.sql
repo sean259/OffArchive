@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
---  Photo storage for listings. Run after 0001_marketplace.sql.
+--  Photo storage for listings. Run after 20261113000001_marketplace.sql.
 --  Photos are public to view; users can only upload to / delete from their own
 --  folder (<user id>/...). Admins can delete any photo.
 --  The website compresses photos in the browser (max 1600×2000 JPEG) before upload.
