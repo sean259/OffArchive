@@ -375,3 +375,27 @@ html.lenis body {
     navigation: none;
   }
 }
+
+/* "Your size" badge, added to cards by scripts/fit-ui.ts when the visitor's fit profile matches */
+.fit-badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--ok);
+  color: #f6f2ec;
+  font-size: 10px;
+  pointer-events: none;
+  animation: badge-in 0.5s var(--ease);
+}
+.card:hover .fit-badge {
+  opacity: 0;
+}
+@keyframes badge-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

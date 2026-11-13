@@ -111,7 +111,8 @@ Every push rebuilds the site.
 - **Saved list**: bookmark pieces and ask about all of them in one Messenger message
 - Filter, sort, "Available only", Grid / List view with hover previews; settings kept in the URL
 - Item pages: swipeable gallery on mobile, accordions, sticky mobile buy bar, previous/next links
-- **Released** page for sold pieces; **Size guide** with diagrams and a sneaker chart
+- **Fit finder**: visitors enter height, weight (cm/kg or ft-in/lb) and fit preference. Clothing pages say how that piece will fit them, using the piece's measurements when listed and the tag size otherwise. The profile is remembered on their device, matching cards get a "✓ Your size" badge, and the shop gets a "My size" filter. The sizing numbers live in `src/lib/fit.ts` if you need to tune them.
+- **Released** page for sold pieces; **Size guide** with the fit finder, diagrams and a sneaker chart
 - Drop alerts via Messenger (plus an optional email list)
 
 **Foundations:** share images generated for every page, Product/Store structured data, sitemap, robots.txt, self-hosted fonts, optimized images, works without JavaScript.

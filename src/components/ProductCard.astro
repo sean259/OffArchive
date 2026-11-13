@@ -1,5 +1,5 @@
 ---
-import { categoryOf, itemPath, catalogNo, statusRank, type Item } from '../lib/items';
+import { categoryOf, itemPath, catalogNo, statusRank, fitData, type Item } from '../lib/items';
 import { peso } from '../lib/format';
 import ProductMedia from './ProductMedia.astro';
 import SaveButton from './SaveButton.astro';
@@ -19,6 +19,7 @@ interface Props {
 const { item, eager = false, order = 0, sizes, transition = true, dimSold = true } = Astro.props;
 const { title, price, size, condition, status, listed } = item.data;
 const category = categoryOf(item);
+const fit = fitData(item);
 const sold = status === 'sold' && dimSold;
 ---
 
@@ -34,6 +35,7 @@ const sold = status === 'sold' && dimSold;
   data-order={order}
   style={`--vt: card-${item.id}`}
   data-cursor-label="View"
+  data-fit={fit ? JSON.stringify(fit) : undefined}
 >
   <div class="media-wrap">
     <ProductMedia item={item} eager={eager} sizes={sizes} transition={transition} />

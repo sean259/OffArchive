@@ -5,7 +5,7 @@
  * and stay in the URL (?c=shoes&sort=price-asc&available=1) so views can be shared.
  */
 import { CATEGORIES } from '../config/site';
-import { categoryOf, catalogNo, itemPath, statusRank, STATUS_LABEL, type Item } from '../lib/items';
+import { categoryOf, catalogNo, itemPath, statusRank, fitData, STATUS_LABEL, type Item } from '../lib/items';
 import { peso } from '../lib/format';
 import ProductCard from './ProductCard.astro';
 import ProductMedia from './ProductMedia.astro';
@@ -42,6 +42,11 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
       </div>
 
       <div class="controls label">
+        <label class="switch" data-my-size-wrap hidden>
+          <input type="checkbox" data-my-size />
+          <span class="track" aria-hidden="true"></span>
+          My size
+        </label>
         <label class="switch">
           <input type="checkbox" data-hide-sold />
           <span class="track" aria-hidden="true"></span>
@@ -92,6 +97,7 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
             data-listed={item.data.listed.getTime()}
             data-order={i}
             style={`--vt: row-${item.id}`}
+            data-fit={fitData(item) ? JSON.stringify(fitData(item)) : undefined}
           >
             <a class:list={['irow', { sold: item.data.status === 'sold' }]} href={itemPath(item)} data-peek>
               <span class="label muted">{catalogNo(item)}</span>
@@ -139,12 +145,15 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
     const empty = root.querySelector<HTMLElement>('[data-empty]')!;
     const hideSold = root.querySelector<HTMLInputElement>('[data-hide-sold]')!;
     const sortSel = root.querySelector<HTMLSelectElement>('[data-sort]')!;
+    const mySize = root.querySelector<HTMLInputElement>('[data-my-size]')!;
+    const mySizeWrap = root.querySelector<HTMLElement>('[data-my-size-wrap]')!;
 
     const params = new URLSearchParams(location.search);
     const valid = new Set(chips.map((c) => c.dataset.filter));
     let current = params.get('c') ?? 'all';
     if (!valid.has(current)) current = 'all';
     hideSold.checked = params.get('available') === '1';
+    mySize.checked = params.get('fit') === '1';
     const sortParam = params.get('sort');
     if (sortParam && [...sortSel.options].some((o) => o.value === sortParam)) sortSel.value = sortParam;
 
@@ -172,7 +181,8 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
         for (const card of cards) {
           const show =
             (current === 'all' || card.dataset.category === current) &&
-            !(hideSold.checked && card.dataset.status !== 'available');
+            !(hideSold.checked && card.dataset.status !== 'available') &&
+            !(mySize.checked && card.dataset.fits !== '1');
           card.hidden = !show;
           if (show) visible++;
         }
@@ -191,6 +201,7 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
       set('c', current === 'all' ? null : current);
       set('available', hideSold.checked ? '1' : null);
       set('sort', sortSel.value === 'default' ? null : sortSel.value);
+      set('fit', mySize.checked ? '1' : null);
       history.replaceState(history.state, '', url);
     };
 
@@ -211,6 +222,14 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
       }),
     );
     hideSold.addEventListener('change', update);
+    mySize.addEventListener('change', update);
+    // The fit finder marks cards that fit (data-fits) once a profile exists.
+    window.addEventListener('fit:applied', (e) => {
+      const has = (e as CustomEvent<{ hasProfile: boolean }>).detail.hasProfile;
+      mySizeWrap.hidden = !has;
+      if (!has) mySize.checked = false;
+      apply();
+    });
     sortSel.addEventListener('change', update);
     views.forEach((v) =>
       v.addEventListener('click', () => {

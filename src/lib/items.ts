@@ -74,3 +74,18 @@ export function latestDrop(items: Item[], windowDays: number) {
     date: new Date(newest),
   };
 }
+
+/** Which fit finder applies: tops vs bottoms for clothing, none for shoes/books. */
+export function garmentOf(item: Item): 'top' | 'bottom' | null {
+  if (item.data.category !== 'Clothing') return null;
+  return item.data.art === 'pants' ? 'bottom' : 'top';
+}
+
+/** The data the fit finder needs about a piece (tag size + relevant measurements). */
+export function fitData(item: Item) {
+  const garment = garmentOf(item);
+  if (!garment) return null;
+  const m = item.data.measurements ?? {};
+  const pick = garment === 'top' ? { pitToPit: m.pitToPit, length: m.length } : { waist: m.waist, inseam: m.inseam };
+  return { garment, size: item.data.size, m: Object.fromEntries(Object.entries(pick).filter(([, v]) => v)) };
+}

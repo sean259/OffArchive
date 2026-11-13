@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHead from '../components/SectionHead.astro';
 import MessengerButton from '../components/MessengerButton.astro';
+import FitFinder from '../components/FitFinder.astro';
 import { ART } from '../lib/art';
 
 // Men's sneaker sizes. Approximate: always compare with the listed insole length when given.
@@ -44,6 +45,24 @@ const bottom = [
         Tag sizes vary between brands and eras, so every clothing listing includes flat measurements. The easiest way to check fit:
         lay a piece you already love flat, measure it the same way, and compare.
       </p>
+    </div>
+  </section>
+
+  <section class="finder" id="finder">
+    <div class="wrap">
+      <SectionHead index="✳" label="Fit finder">
+        Find your <em>size.</em>
+        <span slot="aside" class="label muted">Height + weight → size</span>
+      </SectionHead>
+      <div class="finder-grid">
+        <p class="finder-copy">
+          Tell us your height and weight and how you like things to fit. We’ll estimate your size and the measurements to look
+          for. Every clothing page then tells you how that piece will fit you, and the shop can show only pieces in your size.
+        </p>
+        <div class="finder-card rv">
+          <FitFinder id="ff-guide" />
+        </div>
+      </div>
     </div>
   </section>
 
@@ -183,6 +202,26 @@ const bottom = [
   .band {
     background: var(--paper-2);
   }
+  .finder {
+    padding-top: 40px;
+  }
+  .finder-grid {
+    display: grid;
+    grid-template-columns: 5fr 1fr 6fr;
+    align-items: start;
+  }
+  .finder-copy {
+    grid-column: 1;
+    font: 400 clamp(20px, 1.8vw, 26px) / 1.35 var(--display);
+    color: var(--ink-2);
+    max-width: 30ch;
+  }
+  .finder-card {
+    grid-column: 3;
+    padding: 28px;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+  }
   .band .fig {
     background: var(--paper);
   }
@@ -302,9 +341,14 @@ const bottom = [
     .lede {
       margin-left: 0;
     }
-    .diagram {
+    .diagram,
+    .finder-grid {
       grid-template-columns: 1fr;
       gap: 32px;
+    }
+    .finder-card {
+      grid-column: 1;
+      padding: 20px;
     }
     .legend {
       grid-column: 1;

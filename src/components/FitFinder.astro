@@ -1,0 +1,314 @@
+---
+/**
+ * Fit finder: height + weight + fit preference → size suggestion.
+ *  - With `item`: compares against that piece (item page).
+ *  - Without:     shows general tops/bottoms sizing (size guide).
+ * Logic: lib/fit.ts · behaviour: scripts/fit-ui.ts
+ */
+import type { FitItem } from '../lib/fit';
+
+interface Props {
+  item?: FitItem;
+  id?: string;
+}
+const { item, id = 'ff' } = Astro.props;
+---
+
+<div class="ff" data-fit-finder data-item={item ? JSON.stringify(item) : undefined}>
+  <form class="ff-form" data-ff-form novalidate onsubmit="return false">
+    <fieldset class="field">
+      <legend class="label muted">Height</legend>
+      <div class="row">
+        <div class="inputs" data-h="cm">
+          <label class="box">
+            <input type="number" inputmode="decimal" name="hcm" min="130" max="220" step="0.5" placeholder="175" aria-label="Height in centimetres" />
+            <span class="unit label">cm</span>
+          </label>
+        </div>
+        <div class="inputs" data-h="ft" hidden>
+          <label class="box">
+            <input type="number" inputmode="numeric" name="hft" min="4" max="7" placeholder="5" aria-label="Height, feet" />
+            <span class="unit label">ft</span>
+          </label>
+          <label class="box">
+            <input type="number" inputmode="numeric" name="hin" min="0" max="11" placeholder="9" aria-label="Height, inches" />
+            <span class="unit label">in</span>
+          </label>
+        </div>
+        <div class="seg" role="group" aria-label="Height unit">
+          <button type="button" data-unit="h" data-val="cm" aria-pressed="true">cm</button>
+          <button type="button" data-unit="h" data-val="ft" aria-pressed="false">ft/in</button>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend class="label muted">Weight</legend>
+      <div class="row">
+        <div class="inputs">
+          <label class="box">
+            <input type="number" inputmode="decimal" name="w" min="35" max="400" step="0.5" placeholder="68" aria-label="Weight" />
+            <span class="unit label" data-w-unit>kg</span>
+          </label>
+        </div>
+        <div class="seg" role="group" aria-label="Weight unit">
+          <button type="button" data-unit="w" data-val="kg" aria-pressed="true">kg</button>
+          <button type="button" data-unit="w" data-val="lb" aria-pressed="false">lb</button>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend class="label muted">I like my fit</legend>
+      <div class="seg wide" role="group" aria-label="Fit preference">
+        <button type="button" data-pref="fitted" aria-pressed="false">Fitted</button>
+        <button type="button" data-pref="regular" aria-pressed="true">Regular</button>
+        <button type="button" data-pref="relaxed" aria-pressed="false">Relaxed</button>
+      </div>
+    </fieldset>
+  </form>
+
+  <div class="result" data-ff-result aria-live="polite" id={`${id}-result`}>
+    <p class="hint muted">Enter your height and weight for a size suggestion{item ? ' for this piece' : ''}.</p>
+  </div>
+
+  <div class="foot label muted">
+    <span>An estimate. Measurements beat tag sizes. Saved on this device only.</span>
+    <button type="button" class="link" data-ff-clear hidden>Clear</button>
+  </div>
+</div>
+
+<style>
+  .ff {
+    display: grid;
+    gap: 22px;
+  }
+  .ff-form {
+    display: grid;
+    gap: 16px;
+  }
+  .field {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  legend {
+    padding: 0;
+    margin-bottom: 8px;
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .inputs {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--paper);
+    transition: border-color 0.3s;
+    min-width: 0;
+  }
+  .box:focus-within {
+    border-color: var(--ink);
+  }
+  .box input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: 400 24px var(--display);
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  .box input::-webkit-outer-spin-button,
+  .box input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .box input::placeholder {
+    color: var(--faint);
+  }
+  .unit {
+    color: var(--muted);
+  }
+  .seg {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    flex: none;
+  }
+  .seg button {
+    height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    font: 400 11px var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition:
+      background 0.3s,
+      color 0.3s;
+  }
+  .seg button[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+  .seg.wide {
+    display: flex;
+  }
+  .seg.wide button {
+    flex: 1;
+  }
+
+  .result {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    min-height: 64px;
+  }
+  .hint {
+    font: italic 400 19px/1.35 var(--display);
+  }
+  .result :global(.you) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .result :global(.you strong) {
+    font: 400 44px/1 var(--display);
+  }
+  .result :global(.verdict) {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 16px;
+    border-radius: 4px;
+    background: var(--paper-2);
+  }
+  .result :global(.verdict .t) {
+    font: 400 24px/1.1 var(--display);
+  }
+  .result :global(.verdict p) {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .result :global(.mark) {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font: 500 13px var(--mono);
+    color: #f6f2ec;
+    background: var(--muted);
+    margin-top: 1px;
+  }
+  .result :global(.good .mark) {
+    background: var(--ok);
+  }
+  .result :global(.roomy .mark),
+  .result :global(.snug .mark) {
+    background: var(--hold);
+  }
+  .result :global(.big .mark),
+  .result :global(.small .mark) {
+    background: var(--accent);
+  }
+  .result :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 14px;
+  }
+  .result :global(th) {
+    text-align: left;
+    font: 400 10px var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 8px 6px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .result :global(td) {
+    padding: 10px 8px 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .result :global(td.n) {
+    white-space: nowrap;
+  }
+  .result :global(.tone-good) {
+    color: var(--ok);
+  }
+  .result :global(.tone-roomy),
+  .result :global(.tone-snug) {
+    color: var(--hold);
+  }
+  .result :global(.tone-big),
+  .result :global(.tone-small) {
+    color: var(--accent);
+  }
+  .result :global(.general) {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .result :global(.general div) {
+    background: var(--paper);
+    padding: 16px;
+    grid-column: span 2; /* 3 per row: Tops, Pit to pit, Length */
+  }
+  .result :global(.general div:nth-child(n + 4)) {
+    grid-column: span 3; /* 2 per row: Waist, Inseam */
+  }
+  @media (max-width: 560px) {
+    .result :global(.general div),
+    .result :global(.general div:nth-child(n + 4)) {
+      grid-column: span 3;
+    }
+    .result :global(.general div:first-child) {
+      grid-column: 1 / -1;
+    }
+  }
+  .result :global(.general strong) {
+    display: block;
+    font: 400 34px/1 var(--display);
+    margin-top: 8px;
+  }
+  .result :global(.shop) {
+    margin-top: 18px;
+  }
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+  }
+  .foot .link {
+    font-size: 11px;
+  }
+</style>
