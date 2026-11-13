@@ -32,7 +32,7 @@ const [cover, alt] = item.data.images;
 ---
 
 <div
-  class:list={['frame media', { swap: Boolean(alt) }]}
+  class:list={['frame media', { swap: Boolean(alt), pf: Boolean(cover) }]}
   style={transition ? `view-transition-name: item-${item.id}` : undefined}
 >
   {badge && <StatusBadge status={item.data.status} />}

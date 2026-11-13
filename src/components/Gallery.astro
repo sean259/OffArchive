@@ -22,7 +22,7 @@ const sizes = '(max-width: 860px) 100vw, 55vw';
       <>
         <div class="slides" data-slides>
           {images.map((src, i) => (
-            <div class="frame slide" style={i === 0 ? `view-transition-name: item-${item.id}` : undefined}>
+            <div class="frame slide pf" style={i === 0 ? `view-transition-name: item-${item.id}` : undefined}>
               {i === 0 && <StatusBadge status={status} />}
               <Photo
                 photo={src}

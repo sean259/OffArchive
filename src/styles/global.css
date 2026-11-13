@@ -255,6 +255,34 @@ section {
   background: radial-gradient(120% 90% at 50% 35%, transparent 55%, rgba(0, 0, 0, 0.06));
 }
 
+/* Photo frame: every listing photo sits in the same matted print, so photos from
+   different sellers and phones look like one collection. In light mode, white or
+   light backgrounds blend into the paper (multiply), close to a cut-out look
+   without editing the product. Dark mode dims photos slightly so they don't glare. */
+.frame.pf {
+  --mat: clamp(8px, 5%, 22px);
+  isolation: isolate;
+  background: var(--pf-bg);
+}
+.frame.pf > img.photo {
+  inset: var(--mat);
+  width: calc(100% - var(--mat) * 2);
+  height: calc(100% - var(--mat) * 2);
+  border-radius: 1px;
+  mix-blend-mode: var(--photo-blend);
+  filter: var(--photo-filter);
+}
+.frame.pf::before {
+  /* hairline around the print */
+  content: '';
+  position: absolute;
+  inset: var(--mat);
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid var(--line);
+  border-radius: 1px;
+}
+
 /* Status dot */
 .dot {
   display: inline-block;

@@ -19,6 +19,10 @@
   --on-ink: #efebe4;
   --scrim: rgba(14, 14, 12, 0.5);
   --grain-opacity: 0.07;
+  /* Photo frames: light backgrounds in photos melt into the paper tone. */
+  --photo-blend: multiply;
+  --pf-bg: var(--paper);
+  --photo-filter: saturate(0.96);
 
   --display: 'Instrument Serif', 'Times New Roman', serif;
   --sans: 'Inter Variable', 'Inter', 'Helvetica Neue', Arial, sans-serif;
@@ -49,6 +53,9 @@
     --hold: #d4ad60;
     --on-ink: #100f0d;
     --grain-opacity: 0.05;
+    --photo-blend: normal;
+  --pf-bg: var(--paper-2);
+    --photo-filter: brightness(0.9) saturate(0.92);
     color-scheme: dark;
   }
 }
@@ -68,5 +75,8 @@
   --hold: #d4ad60;
   --on-ink: #100f0d;
   --grain-opacity: 0.05;
+  --photo-blend: normal;
+  --pf-bg: var(--paper-2);
+  --photo-filter: brightness(0.9) saturate(0.92);
   color-scheme: dark;
 }
