@@ -35,7 +35,5 @@ jobs:
       # which proves the production build works.
       - run: npx astro build
 
-      # Known-vulnerability scan of production dependencies.
-      # Report-only until the Astro 5 → 7 upgrade lands (ROADMAP: Security, P0); then remove continue-on-error.
+      # Known-vulnerability scan of production dependencies (fails on high or critical).
       - run: npm audit --omit=dev --audit-level=high
-        continue-on-error: true

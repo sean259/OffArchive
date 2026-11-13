@@ -4,7 +4,7 @@
 
 Anyone can sign up with their email and list pieces to sell. Admins review every new listing before it goes live. Buyers contact sellers directly on Messenger or by text, so there's no cart and no fees.
 
-**Stack:** [Astro](https://astro.build) (server-rendered, TypeScript) · [Supabase](https://supabase.com) (Postgres, email sign-in, photo storage, row-level security) · Netlify.
+**Stack:** [Astro](https://astro.build) (server-rendered, TypeScript) · [Supabase](https://supabase.com) (Postgres, email sign-in, photo storage, row-level security) · [Cloudflare Workers](https://workers.cloudflare.com) (hosting).
 
 ## Quick start
 
@@ -74,7 +74,8 @@ offarchive/
 │   ├── content/items/       Markdown fallback/seed items
 │   └── styles/              tokens.css (palette, fonts), global.css (shared utilities)
 ├── docs/SUPABASE.md         Step-by-step setup
-├── netlify.toml             Deploy settings
+├── wrangler.jsonc           Cloudflare Worker settings
+├── public/_headers          Security and cache headers for static files
 └── ROADMAP.md
 ```
 
@@ -103,7 +104,7 @@ git switch dev
 
 ## Deploying
 
-**Netlify** (configured in `netlify.toml`): import the GitHub repo, set the production branch to `main`, and add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` under Environment variables. Pages are server-rendered by Netlify Functions (free tier is plenty to start). The adapter switches automatically: Netlify builds use `@astrojs/netlify`, local builds use `@astrojs/node`.
+**Cloudflare Workers** (configured in `wrangler.jsonc`): in the Cloudflare dashboard go to Workers & Pages → Create → Import a repository, pick this repo, keep the build command `npm run build` and deploy command `npx wrangler deploy`, and set the production branch to `main`. Add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` under Settings → Builds → Variables and secrets (they are baked in at build time). The free plan covers 100,000 requests a day with unlimited bandwidth. `npm run preview` runs the production build locally in the Workers runtime.
 
 ## Features
 

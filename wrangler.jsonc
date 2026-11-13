@@ -1,0 +1,11 @@
+// Cloudflare Workers config. The Astro adapter fills in the entry point and the static-assets
+// binding automatically. "name" must match the Worker's name in the Cloudflare dashboard.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "offarchive",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  // PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY are set in the dashboard
+  // (Settings → Builds → Variables and secrets) and in .env locally. They're public keys.
+}

@@ -20,7 +20,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
     try {
       applySecurityHeaders(response.headers, ctx.url.protocol === 'https:');
     } catch {
-      // Some responses (e.g. passed-through static files) have read-only headers; netlify.toml covers those.
+      // Some responses (e.g. passed-through static files) have read-only headers; public/_headers covers those.
     }
   }
   return response;

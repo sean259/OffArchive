@@ -20,3 +20,7 @@ Thumbs.db
 
 # raw photos before `npm run photos` (may contain GPS data)
 photo-inbox/
+
+# Cloudflare local state
+.wrangler/
+.dev.vars*

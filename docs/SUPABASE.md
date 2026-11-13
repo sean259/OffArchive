@@ -79,7 +79,7 @@ PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...   # or sb_publishable_...
 
 Restart `npm run dev`. Both values are safe in the browser, because the database rules decide what each person can do. **Never** put the `service_role` / secret key in `.env` or anywhere in the site.
 
-On **Netlify**: Site configuration → **Environment variables**, add the same two variables, then redeploy.
+On **Cloudflare**: your Worker → **Settings → Builds → Variables and secrets**, add the same two variables (type Text), then redeploy. Also add your `…workers.dev` address (and later your domain) to Supabase → Authentication → URL Configuration: Site URL and `https://<address>/auth/callback/**` in Redirect URLs.
 
 ## 6. Make yourself admin
 

@@ -84,7 +84,7 @@ Rebuilt from a single HTML file into an Astro + TypeScript project.
 | 6 | Fill in `src/config/site.ts` | P0 | 🧑 | Real Messenger username, domain, `url` |
 | 7 | Rewrite placeholder copy | P1 | 🧑 | Search the project for `TODO` |
 | 8 | Hero and about photos | P1 | 🧑 | See TODO in `About.astro` |
-| 9 | Deploy to Netlify, set env vars there | P0 | 🧑 | Connect the repo, deploy from `main` and add the two `PUBLIC_SUPABASE_*` variables |
+| 9 | Deploy to Cloudflare Workers, set env vars there | P0 | 🧑 | Import the repo (Workers & Pages → Create → Import a repository), production branch `main`, add the two `PUBLIC_SUPABASE_*` variables under Settings → Builds → Variables and secrets |
 | 10 | Domain + update Supabase auth URLs to it | P1 | 🧑 | e.g. `offarchive.shop`. Add `https://<domain>/auth/callback/**` to the Supabase redirect URLs |
 | 11 | Analytics | P1 | 🧑 | Paste a Cloudflare token or Plausible domain into `site.ts → analytics` |
 | 12 | **Security, error handling and legal P0s** | P0 | 🔨 | See Part B, all lines marked P0 |
@@ -147,12 +147,12 @@ Consignment · bundles ("buy 2, save ₱100") · lookbook pages per drop · meet
 
 | Task | Pri | Details |
 |------|-----|---------|
-| 🔨 **Upgrade Astro 5 → 7, sharp, adapters** | P0 | `npm audit` reports a critical (AVIF image RCE) and several XSS advisories fixed only in Astro 7.x. Two major versions: follow the upgrade guides, re-run all checks. CI audit is report-only until this lands |
-| ✅ Security headers | P0 | In `netlify.toml` / middleware: `Content-Security-Policy` (self + Supabase URL + analytics only), `Strict-Transport-Security`, `X-Frame-Options: DENY` / `frame-ancestors 'none'`, `Permissions-Policy` (camera, mic and geolocation off). Test with securityheaders.com |
-| ✅ Rate limiting | P0 | Supabase Auth limits OTP emails per hour (set it in the dashboard). Add per-IP / per-user limits on `/api/listings` and `/api/profile` (Netlify edge rate limit, or a small `rate_limits` table) |
+| ✅ **Upgrade Astro 5 → 7, sharp, adapters** | P0 | Done: Astro 7.4, sharp 0.35, Cloudflare adapter 14, TypeScript 6 |
+| ✅ Security headers | P0 | In `public/_headers` / middleware: `Content-Security-Policy` (self + Supabase URL + analytics only), `Strict-Transport-Security`, `X-Frame-Options: DENY` / `frame-ancestors 'none'`, `Permissions-Policy` (camera, mic and geolocation off). Test with securityheaders.com |
+| ✅ Rate limiting | P0 | Supabase Auth limits OTP emails per hour (set it in the dashboard). Add per-IP / per-user limits on `/api/listings` and `/api/profile` (in-app limiter done; add a free Cloudflare WAF rate-limiting rule for `/api/auth/*` once live) |
 | ✅ Upload validation on the server side | P0 | Storage bucket: limit size (e.g. 5 MB) and MIME types (`image/jpeg`, `image/webp`, `image/png`) in the bucket settings, not just in the browser |
 | 🔨 Escape user content everywhere | P0 | Audit that descriptions and usernames are never rendered with `set:html`. Validate Messenger, Instagram and phone formats so a contact link can't be `javascript:` |
-| 🧑 Account security | P0 | 2FA on GitHub, Supabase, Netlify, domain registrar and email. These accounts are the real keys to the site |
+| 🧑 Account security | P0 | 2FA on GitHub, Supabase, Cloudflare, domain registrar and email. These accounts are the real keys to the site |
 | 🔨 Dependency scanning | P1 | GitHub Dependabot + `npm audit` in CI |
 | 🔨 Secret scanning | P1 | Turn on GitHub secret scanning + push protection |
 | 🔨 Session hygiene | P1 | "Log out everywhere" on the account page. Session lifetime and refresh-token rotation (Supabase Auth settings) |
@@ -201,7 +201,7 @@ Consignment · bundles ("buy 2, save ₱100") · lookbook pages per drop · meet
 | 🔨 End-to-end tests (Playwright) | P1 | Browse → item → Messenger CTA. Log in → sell → admin approve → listing live. Mobile viewport too |
 | 🔨 Visual regression | P2 | Screenshot key pages in light and dark mode to catch design breakage |
 | 🔨 Lint + format | P2 | ESLint + Prettier, run in CI |
-| 🔨 Staging environment | P1 | Netlify deploy previews for `dev` against a separate Supabase project (free tier), so tests never touch real data |
+| 🔨 Staging environment | P1 | Cloudflare preview deployments for `dev` against a separate Supabase project (free tier), so tests never touch real data |
 
 ## 4. Performance
 
@@ -243,7 +243,7 @@ Consignment · bundles ("buy 2, save ₱100") · lookbook pages per drop · meet
 |------|-----|---------|
 | 🔨 Uptime monitor | P1 | UptimeRobot / Better Stack free tier pinging `/` and a `/api/health` route that checks the database |
 | ✅🧑 Backups | P0 | **Built:** `.github/workflows/backup.yml` (weekly, encrypted, kept 90 days). **You:** add the `SUPABASE_DB_URL` and `BACKUP_PASSPHRASE` secrets on GitHub, then press "Run workflow" once to test. Originally: Supabase free tier has no point-in-time restore. Run a weekly `supabase db dump` (scripted) + bucket export, stored off-site |
-| 🔨 Runbook | P1 | `docs/RUNBOOK.md` covering site down, database down, spam wave, leaked key (rotate in Supabase, redeploy), bad deploy (Netlify instant rollback) |
+| 🔨 Runbook | P1 | `docs/RUNBOOK.md` covering site down, database down, spam wave, leaked key (rotate in Supabase, redeploy), bad deploy (Cloudflare → Deployments → roll back) |
 | 🔨 Migration discipline | P0 | Every database change is a new file in `supabase/migrations/`, tested with `test:db`, and pushed to staging before production. Never edit production tables by hand |
 | 🧑 Supabase free-tier pause | P1 | Free projects pause after 7 days of no activity. The uptime monitor's health check keeps it awake |
 | 🔨 Release process | P1 | Work on `dev`, deploy preview, CI green, merge to `main`, auto-deploy. Tag versions (`v0.5.0`) with a CHANGELOG entry |
@@ -273,7 +273,7 @@ Consignment · bundles ("buy 2, save ₱100") · lookbook pages per drop · meet
 Run on a real phone, on mobile data, logged out and then logged in.
 
 - [ ] `npm run db:check` all ✓ against production
-- [ ] Netlify env vars set; `PUBLIC_SUPABASE_URL` points at the production project
+- [ ] Cloudflare build variables set; `PUBLIC_SUPABASE_URL` points at the production project
 - [ ] Supabase Site URL and redirect URLs use the real domain; login email arrives within a minute and isn't in spam
 - [ ] Sign up as a fresh test account → create listing → it shows "pending" → approve as admin → it appears in the shop
 - [ ] Test account can't see the admin pages or edit another seller's listing
@@ -293,6 +293,7 @@ Run on a real phone, on mobile data, logged out and then logged in.
 | Decision | Why | Revisit when |
 |----------|-----|--------------|
 | **Astro, server-rendered** (was static) | Listings, logins and moderation must be live. Static pages are still prerendered. | — |
+| **Cloudflare Workers** hosting (was Netlify) | Unlimited bandwidth and 100k requests/day free, servers in Manila and Cebu, built-in firewall and rate-limit rules, first-class Astro support. Static pages and the share image are still built with Node. | If you need long-running server jobs (use a Supabase Edge Function instead) |
 | **Supabase** (Postgres + Auth + Storage) | One service for email sign-in, data and photos. RLS puts the marketplace rules in the database itself. Free tier, Singapore region, real Postgres (no lock-in). | If you need features Postgres can't do (unlikely) |
 | **Permissions in the database, not the UI** | A bug in a page can't leak data or let someone approve their own listing. Tested with real Postgres. | Never |
 | **Admin-approves-first moderation** | Protects the curated feel and buyers. Verified sellers skip the queue. | If the queue gets too long for one person: add more admins |

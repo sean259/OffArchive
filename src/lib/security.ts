@@ -1,6 +1,6 @@
 /**
  * Response hardening and simple abuse protection for server-rendered requests.
- * Static (prerendered) files get the same headers from netlify.toml.
+ * Static (prerendered) files get the same headers from public/_headers.
  */
 import { SUPABASE_URL } from './supabase';
 
