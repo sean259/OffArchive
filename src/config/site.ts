@@ -12,8 +12,8 @@ export const SITE = {
   description:
     'A personal archive of pre-loved clothing, footwear, and everyday essentials. Collected with intention. Released for someone new. Based in Cebu, Philippines.',
   // TODO: replace with your real domain once deployed (used for canonical URLs, sitemap, share links).
-  // TODO: your live address. Cloudflare shows it on the Worker's page (…workers.dev), or your own domain later.
-  url: 'https://offarchive.workers.dev',
+  // Live address on Cloudflare. Change this when you add your own domain.
+  url: 'https://offarchive.seanlorico9.workers.dev',
   location: 'Cebu, Philippines',
   announcement: 'Curated finds. Pre-loved pieces. Ready for a new home.',
   // Your Facebook Page username — m.me/<messenger> opens a chat with the page.
