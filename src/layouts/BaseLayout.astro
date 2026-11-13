@@ -33,7 +33,10 @@ const { title, description = SITE.description, image = '/og/default.png', noinde
 const base = Astro.site ?? SITE.url;
 const fullTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
 const canonical = new URL(Astro.url.pathname, base).href;
-const ogImage = new URL(image, base).href;
+// Generated share images get a version number so link previews pick up design changes.
+const ogUrl = new URL(image, base);
+if (ogUrl.pathname.startsWith('/og/')) ogUrl.searchParams.set('v', String(SITE.shareImageVersion));
+const ogImage = ogUrl.href;
 const available = (await getItems()).filter((i) => i.data.status === 'available').length;
 // Set when the database didn't answer: the shop is showing the last listings it loaded.
 const degraded = isDegraded();
@@ -64,6 +67,7 @@ const degraded = isDegraded();
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${SITE.name} — ${SITE.tagline}`} />
     <meta name="twitter:card" content="summary_large_image" />
 
     <script is:inline>

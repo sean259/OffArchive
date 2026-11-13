@@ -14,6 +14,9 @@ export const SITE = {
   // TODO: replace with your real domain once deployed (used for canonical URLs, sitemap, share links).
   // Live address on Cloudflare. Change this when you add your own domain.
   url: 'https://offarchive.seanlorico9.workers.dev',
+  // Bump this after changing the logo or share image: Messenger/Facebook cache previews by image URL,
+  // so a new number makes them fetch the new picture.
+  shareImageVersion: 2,
   location: 'Cebu, Philippines',
   announcement: 'Curated finds. Pre-loved pieces. Ready for a new home.',
   // Your Facebook Page username — m.me/<messenger> opens a chat with the page.
