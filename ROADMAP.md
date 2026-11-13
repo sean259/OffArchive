@@ -67,12 +67,34 @@ Rebuilt from a single HTML file into an Astro + TypeScript project.
 
 ---
 
+## ✅ Phase 3½: Community marketplace (v0.4)
+
+Other people can now sell on OFFARCHIVE. Built on Supabase. See [docs/SUPABASE.md](docs/SUPABASE.md) to switch it on.
+
+- ✅ Email sign-in (6-digit code or magic link, no passwords)
+- ✅ Roles: visitor / seller / admin, enforced by row-level security and triggers (30 automated checks: `npm run test:db`)
+- ✅ Seller profiles with Messenger / phone / Instagram, public seller pages
+- ✅ Sell form: in-browser photo compression, type-aware measurements, edit & delete
+- ✅ Moderation: review queue, reject with a note → fix & resubmit, hide, feature, verified sellers skip review
+- ✅ Buyers contact sellers directly; safety tips on community listings; Saved list messages each seller separately
+- ✅ Your own pieces highlighted as ✳ OFFARCHIVE. picks
+- 🧑 Create the Supabase project, set up SMTP (Resend), make yourself admin, import your items (docs/SUPABASE.md)
+
+**Next in this area** (when there's demand):
+- ⏳ Report a listing (buyers flag scams; shows in the admin queue)
+- ⏳ Email notifications: "your listing was approved / needs changes", "new listing waiting for review"
+- ⏳ Seller ratings after a completed sale
+- ⏳ Size and price filters, saved searches ("tell me when a US 9 drops")
+- ⏳ Image moderation / duplicate-photo detection to catch stolen photos
+
+---
+
 ## ⏳ Phase 4: Real checkout (only if volume demands it)
 
 **Trigger:** more than ~20 orders a month, and Messenger back-and-forth is the bottleneck. Not started on purpose.
 
-- Move to server rendering (Astro + Netlify/Vercel/Cloudflare adapter)
-- Inventory in Supabase: live stock without rebuilds, and two buyers can't both "buy" a one-of-one
+- ✅ Server rendering and Supabase inventory are already in place (Phase 3½)
+- Hold a piece while a buyer pays, so two buyers can't both "buy" a one-of-one
 - Reservations with a 24h timer that auto-releases
 - Payments via PayMongo or Xendit (GCash, Maya, cards). Webhooks mark items sold.
 - Shipping: address at checkout, flat-rate tiers (Cebu / Visayas / Luzon / Mindanao), J&T or LBC tracking
@@ -95,9 +117,11 @@ Rebuilt from a single HTML file into an Astro + TypeScript project.
 
 | Decision | Why | Revisit when |
 |----------|-----|--------------|
-| **Astro (static)** over Next.js/React | Mostly content. Static HTML is fastest on PH mobile data, with no server costs. | Phase 4 (add an adapter, still Astro) |
-| **Markdown content collections** over a database | One-of-one items, low volume, versioned in git, validated at build. | Phase 4 (DB) |
-| **Keystatic (local mode, dev-only)** | A form-based editor over the same files, with zero cost to the public static site. | Phone editing → GitHub mode + adapter |
+| **Astro, server-rendered** (was static) | Listings, logins and moderation must be live. Static pages (guides, 404) are still prerendered. | — |
+| **Supabase** (Postgres + Auth + Storage) | One service for email sign-in, data and photos. Row-level security puts the marketplace rules in the database itself. Free tier, Singapore region, real Postgres (no lock-in). | If you need features Postgres can't do (unlikely) |
+| **Admin-approves-first moderation** | Protects the curated feel and buyers. Verified sellers skip the queue so it doesn't become a bottleneck. | If the queue gets too long for one person: add more admins |
+| **Markdown items as fallback/seed** | The site runs without a database (design work, demos), and the archive imports in one SQL paste. | Can be removed once Supabase is live |
+| **Keystatic** (removed in v0.4) | Replaced by the in-site Sell form and admin dashboard, which work from a phone. | — |
 | **Messenger checkout** over a cart | It's how buyers in PH already buy pre-loved items. Builds trust, costs nothing. | More than ~20 orders a month |
 | **Vanilla CSS with tokens** over Tailwind | Tight token system, scoped component styles. | If a second designer/dev joins |
 | **Lenis smooth scroll + custom cursor** | Premium feel on desktop. Off for touch and reduced-motion users. | If analytics show it hurts engagement |

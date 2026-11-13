@@ -13,6 +13,8 @@ interface Props {
   disabled?: boolean;
   disabledLabel?: string;
   magnetic?: boolean;
+  /** Full Messenger URL for a specific seller (defaults to the shop's page). */
+  href?: string;
 }
 
 const {
@@ -23,6 +25,7 @@ const {
   disabled = false,
   disabledLabel = 'Released — sold',
   magnetic = false,
+  href = messengerUrl,
 } = Astro.props;
 ---
 
@@ -34,7 +37,7 @@ const {
   ) : (
     <a
       class:list={['btn', { 'btn--light': variant === 'light', 'btn--block': block }]}
-      href={messengerUrl}
+      href={href}
       target="_blank"
       rel="noopener"
       data-copy={message}

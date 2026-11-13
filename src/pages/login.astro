@@ -1,0 +1,212 @@
+---
+/**
+ * Email sign-in (no passwords). Step 1: enter email → we send a 6-digit code + magic link.
+ * Step 2: enter the code. Works without JavaScript; forms post to /api/auth/*.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { safeNext } from '../lib/api';
+
+const q = Astro.url.searchParams;
+const next = safeNext(q.get('next'));
+if (Astro.locals.user) return Astro.redirect(next);
+
+const step = q.get('step') === 'code' ? 'code' : 'email';
+const email = q.get('email') ?? '';
+const ERRORS: Record<string, string> = {
+  email: 'That email doesn’t look right. Check it and try again.',
+  send: 'We couldn’t send the email just now. Please try again in a minute.',
+  rate: 'Too many attempts. Wait a minute, then request a new code.',
+  code: 'That code didn’t work. It may have expired, so request a new one.',
+  link: 'That sign-in link has expired or was opened in a different browser. Enter your email to get a fresh code.',
+  setup: 'Accounts aren’t switched on yet.',
+};
+const error = q.get('error');
+---
+
+<BaseLayout title="Log in" description="Sign in to OFFARCHIVE. to sell your pieces." noindex>
+  <section class="auth">
+    <div class="wrap grid">
+      <div class="side">
+        <p class="label muted">(Account)</p>
+        <h1 class="rise">
+          <span class="ln" style="--i:0"><span>Pass it</span></span>
+          <span class="ln" style="--i:1"><span><em>on.</em></span></span>
+        </h1>
+        <ul class="perks">
+          <li><span class="n">01</span> List your pre-loved pieces in minutes, straight from your phone.</li>
+          <li><span class="n">02</span> Buyers message you directly. No fees, no middleman.</li>
+          <li><span class="n">03</span> Every listing is reviewed to keep the archive curated and safe.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        {
+          !isSupabaseConfigured ? (
+            <div class="notice">
+              <div>
+                <strong>Accounts aren’t switched on yet.</strong>
+                <p class="muted">
+                  The site owner needs to connect Supabase (see <code>docs/SUPABASE.md</code>). Until then, you can browse the archive as
+                  usual.
+                </p>
+              </div>
+            </div>
+          ) : step === 'email' ? (
+            <form method="post" action="/api/auth/otp/" class="stack">
+              <div>
+                <h2 class="h">Log in or sign up</h2>
+                <p class="muted">We’ll email you a 6-digit code. No password needed.</p>
+              </div>
+              {error && <div class="notice error">{ERRORS[error] ?? ERRORS.send}</div>}
+              <label class="field">
+                <span class="label">Email</span>
+                <input class="input input--big" type="email" name="email" value={email} required autocomplete="email" placeholder="you@email.com" autofocus />
+              </label>
+              <input type="hidden" name="next" value={next} />
+              <button class="btn btn--block" type="submit">
+                Send my code <span class="arrow">→</span>
+              </button>
+              <p class="label muted fine">By continuing you agree to list honestly and follow our <a href="/how-to-buy/">buying &amp; selling guide</a>.</p>
+            </form>
+          ) : (
+            <div class="stack">
+              <form method="post" action="/api/auth/verify/" class="stack">
+                <div>
+                  <h2 class="h">Check your email</h2>
+                  <p class="muted">
+                    We sent a code to <strong>{email}</strong>. Enter it below, or tap the link in the email.
+                  </p>
+                </div>
+                {error && <div class="notice error">{ERRORS[error] ?? ERRORS.code}</div>}
+                <label class="field">
+                  <span class="label">6-digit code</span>
+                  <input
+                    class="input input--big code"
+                    type="text"
+                    name="token"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    pattern="[0-9 ]{6,10}"
+                    maxlength="10"
+                    required
+                    placeholder="000000"
+                    autofocus
+                  />
+                </label>
+                <input type="hidden" name="email" value={email} />
+                <input type="hidden" name="next" value={next} />
+                <button class="btn btn--block" type="submit">
+                  Log in <span class="arrow">→</span>
+                </button>
+              </form>
+              <div class="row label muted">
+                <a class="link" href={`/login/?next=${encodeURIComponent(next)}`}>Use a different email</a>
+                <form method="post" action="/api/auth/otp/">
+                  <input type="hidden" name="email" value={email} />
+                  <input type="hidden" name="next" value={next} />
+                  <button class="link" type="submit">Resend code</button>
+                </form>
+              </div>
+              <p class="label muted fine">Didn’t get it? Check spam or promotions. Codes expire after an hour.</p>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .auth {
+    padding: clamp(40px, 7vw, 100px) 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 6fr 1fr 5fr;
+    align-items: center;
+  }
+  .side {
+    grid-column: 1;
+  }
+  h1 {
+    margin: 20px 0 40px;
+  }
+  .perks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+    max-width: 44ch;
+  }
+  .perks li {
+    display: flex;
+    gap: 18px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+  }
+  .n {
+    font: italic 400 22px/1 var(--display);
+    color: var(--accent);
+  }
+  .card {
+    grid-column: 3;
+    padding: clamp(24px, 3vw, 40px);
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background: var(--paper);
+    box-shadow: 0 30px 60px -40px rgba(0, 0, 0, 0.25);
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .h {
+    font-size: clamp(34px, 3vw, 44px);
+    margin-bottom: 6px;
+  }
+  .code {
+    letter-spacing: 0.35em;
+    text-align: center;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .row .link {
+    font-size: 11px;
+  }
+  .fine {
+    line-height: 1.6;
+  }
+  .fine a {
+    text-decoration: underline;
+  }
+  code {
+    font: 400 13px var(--mono);
+  }
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .side,
+    .card {
+      grid-column: 1;
+    }
+    .card {
+      order: -1;
+    }
+    .perks {
+      display: none;
+    }
+    h1 {
+      font-size: clamp(56px, 16vw, 96px);
+      margin-bottom: 0;
+    }
+  }
+</style>

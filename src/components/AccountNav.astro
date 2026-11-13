@@ -1,0 +1,82 @@
+---
+/** Sub-navigation for the signed-in area. */
+const { profile, user } = Astro.locals;
+const path = Astro.url.pathname;
+const links = [
+  { href: '/account/', label: 'My listings' },
+  { href: '/sell/', label: 'Sell an item' },
+  { href: '/account/profile/', label: 'Profile' },
+  ...(profile?.role === 'admin' ? [{ href: '/admin/', label: 'Admin' }] : []),
+  ...(profile ? [{ href: `/sellers/${profile.username}/`, label: 'Public page ↗' }] : []),
+];
+const current = (href: string) => (href === '/account/' ? path === href : path.startsWith(href) ? 'page' : undefined);
+---
+
+<div class="acct-head">
+  <div class="who">
+    <span class="label muted">Signed in as</span>
+    <span class="serif">{profile?.display_name ?? user?.email}</span>
+    <span class="label muted">{user?.email}</span>
+  </div>
+  <nav class="tabs" aria-label="Account">
+    {links.map((l) => <a href={l.href} aria-current={current(l.href) ? 'page' : undefined}>{l.label}</a>)}
+    <form method="post" action="/api/auth/logout/">
+      <button type="submit">Log out</button>
+    </form>
+  </nav>
+</div>
+
+<style>
+  .acct-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 28px 0 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 40px;
+  }
+  .who {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .who .serif {
+    font-size: clamp(32px, 3.4vw, 48px);
+    line-height: 1;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tabs a,
+  .tabs button {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: none;
+    font: 400 11px var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition:
+      background 0.3s,
+      color 0.3s;
+  }
+  .tabs a:hover,
+  .tabs button:hover {
+    border-color: var(--ink);
+  }
+  .tabs a[aria-current='page'] {
+    background: var(--ink);
+    color: var(--on-ink);
+    border-color: var(--ink);
+  }
+  .tabs button {
+    color: var(--muted);
+  }
+</style>

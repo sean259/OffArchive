@@ -1,4 +1,6 @@
 import type { APIRoute } from 'astro';
+
+export const prerender = true;
 import { defaultCard } from '../../lib/og';
 import { SITE } from '../../config/site';
 import { ART } from '../../lib/art';

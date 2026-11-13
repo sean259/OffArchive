@@ -1,10 +1,10 @@
 ---
 /**
- * Embeds a compact JSON index of every item, read by the Saved drawer and Search
+ * Embeds a compact JSON index of every public item, read by the Saved drawer and Search
  * (src/lib/catalog.ts). Rendered once per page by BaseLayout.
  */
 import { getImage } from 'astro:assets';
-import { getItems, catalogNo, itemPath } from '../lib/items';
+import { getItems, catalogNo, itemPath, isRemote, messengerFor } from '../lib/items';
 import { peso } from '../lib/format';
 import { ART } from '../lib/art';
 
@@ -12,7 +12,8 @@ const items = await getItems();
 const entries = await Promise.all(
   items.map(async (item, order) => {
     const cover = item.data.images[0];
-    const thumb = cover ? (await getImage({ src: cover, width: 160, format: 'webp' })).src : undefined;
+    const thumb = !cover ? undefined : isRemote(cover) ? cover.src : (await getImage({ src: cover, width: 160, format: 'webp' })).src;
+    const s = item.data.seller;
     return [
       item.id,
       {
@@ -30,6 +31,7 @@ const entries = await Promise.all(
         url: itemPath(item),
         thumb,
         art: ART[item.data.art],
+        seller: { username: s.username, name: s.name, official: s.official, messenger: s.messenger ? messengerFor(s) : null, phone: s.phone },
       },
     ] as const;
   }),

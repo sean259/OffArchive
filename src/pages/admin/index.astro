@@ -1,0 +1,486 @@
+---
+/**
+ * Admin dashboard. Tabs: review queue · all listings · sellers.
+ * Access: admins only (middleware + row-level security). Actions call /api/admin/*.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AccountNav from '../../components/AccountNav.astro';
+import Illustration from '../../components/Illustration.astro';
+import { fromRow, STATUS_LABEL, itemPath, type Item } from '../../lib/items';
+import { LISTING_SELECT, type ListingWithSeller, type ProfileRow } from '../../lib/db-types';
+import { peso, shortDate } from '../../lib/format';
+
+const { supabase, user } = Astro.locals;
+const q = Astro.url.searchParams;
+const tab = (['queue', 'listings', 'sellers'] as const).find((t) => t === q.get('tab')) ?? 'queue';
+const statusFilter = q.get('status') ?? '';
+const search = (q.get('q') ?? '').trim().slice(0, 60);
+
+const db = supabase!;
+const countOf = async (filter: (b: any) => any) => (await filter(db.from('listings').select('id', { count: 'exact', head: true }))).count ?? 0;
+const [pending, live, sold, sellers] = await Promise.all([
+  countOf((b) => b.eq('status', 'pending')),
+  countOf((b) => b.in('status', ['available', 'reserved'])),
+  countOf((b) => b.eq('status', 'sold')),
+  db.from('profiles').select('id', { count: 'exact', head: true }).then((r) => r.count ?? 0),
+]);
+
+let listings: Item[] = [];
+let users: (ProfileRow & { listings: { count: number }[] })[] = [];
+if (tab === 'queue') {
+  const { data } = await db.from('listings').select(LISTING_SELECT).eq('status', 'pending').order('created_at', { ascending: true }).limit(100);
+  listings = ((data ?? []) as ListingWithSeller[]).map(fromRow);
+} else if (tab === 'listings') {
+  let query = db.from('listings').select(LISTING_SELECT).order('created_at', { ascending: false }).limit(200);
+  if (statusFilter) query = query.eq('status', statusFilter);
+  if (search) query = query.ilike('title', `%${search.replace(/[%_]/g, '')}%`);
+  const { data } = await query;
+  listings = ((data ?? []) as ListingWithSeller[]).map(fromRow);
+} else {
+  const { data } = await db.from('profiles').select('*, listings(count)').order('created_at', { ascending: false }).limit(300);
+  users = (data ?? []) as typeof users;
+}
+const STATUSES = ['pending', 'available', 'reserved', 'sold', 'rejected', 'hidden'] as const;
+---
+
+<BaseLayout title="Admin" noindex>
+  <div class="wrap page">
+    <AccountNav />
+
+    <div class="stats">
+      <a href="/admin/?tab=queue" class:list={{ hot: pending > 0 }}><span class="label muted">Waiting for review</span><strong>{pending}</strong></a>
+      <a href="/admin/?tab=listings&status=available"><span class="label muted">Live</span><strong>{live}</strong></a>
+      <a href="/admin/?tab=listings&status=sold"><span class="label muted">Sold</span><strong>{sold}</strong></a>
+      <a href="/admin/?tab=sellers"><span class="label muted">Accounts</span><strong>{sellers}</strong></a>
+    </div>
+
+    <nav class="tabs" aria-label="Admin sections">
+      <a href="/admin/?tab=queue" aria-current={tab === 'queue' ? 'page' : undefined}>Review queue {pending > 0 && <sup>{pending}</sup>}</a>
+      <a href="/admin/?tab=listings" aria-current={tab === 'listings' ? 'page' : undefined}>All listings</a>
+      <a href="/admin/?tab=sellers" aria-current={tab === 'sellers' ? 'page' : undefined}>Sellers</a>
+    </nav>
+
+    {
+      tab === 'queue' && (
+        <section>
+          {listings.length === 0 ? (
+            <p class="empty serif">
+              All caught up <em>✳</em>
+            </p>
+          ) : (
+            <ul class="queue">
+              {listings.map((l) => (
+                <li class="qcard" data-listing={l.uuid}>
+                  <div class="qphotos">
+                    {l.data.images.length ? (
+                      l.data.images.slice(0, 4).map((p) => <img src={'src' in p ? p.src : ''} alt="" loading="lazy" />)
+                    ) : (
+                      <div class="frame ph">
+                        <Illustration kind={l.data.art} />
+                      </div>
+                    )}
+                  </div>
+                  <div class="qbody">
+                    <span class="label muted">
+                      № {l.data.no} · {l.data.category} · submitted {shortDate(l.data.listed)}
+                    </span>
+                    <a class="qtitle" href={itemPath(l)} target="_blank">
+                      {l.data.title} ↗
+                    </a>
+                    <span>
+                      <strong class="num">{peso(l.data.price)}</strong> · {l.data.size} · {l.data.condition}
+                      {l.data.brand && ` · ${l.data.brand}`}
+                    </span>
+                    {l.body && <p class="muted desc">{l.body}</p>}
+                    <span class="label muted">
+                      by <a href={`/sellers/${l.data.seller.username}/`}>@{l.data.seller.username}</a>
+                      {l.data.seller.verified ? ' · verified' : ''} · {l.data.seller.messenger ? 'Messenger ✓' : ''} {l.data.seller.phone ? 'Phone ✓' : ''}
+                    </span>
+                  </div>
+                  <div class="qacts">
+                    <button class="btn btn--sm" data-action="approve">
+                      Approve
+                    </button>
+                    <button class="btn btn--ghost btn--sm" data-action="reject">
+                      Reject…
+                    </button>
+                    <a class="link" href={`/sell/${l.uuid}/`}>
+                      Edit
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )
+    }
+
+    {
+      tab === 'listings' && (
+        <section>
+          <form class="filters" method="get">
+            <input type="hidden" name="tab" value="listings" />
+            <input class="input" name="q" value={search} placeholder="Search titles…" />
+            <select class="select" name="status">
+              <option value="">All statuses</option>
+              {STATUSES.map((s) => (
+                <option value={s} selected={s === statusFilter}>
+                  {STATUS_LABEL[s]}
+                </option>
+              ))}
+            </select>
+            <button class="btn btn--sm">Filter</button>
+          </form>
+          <div class="table-wrap" data-lenis-prevent>
+            <table class="table">
+              <thead>
+                <tr class="label muted">
+                  <th>№</th>
+                  <th>Piece</th>
+                  <th>Seller</th>
+                  <th>Price</th>
+                  <th>Status</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {listings.map((l) => (
+                  <tr data-listing={l.uuid}>
+                    <td class="label muted">{l.data.no}</td>
+                    <td>
+                      <a href={itemPath(l)} target="_blank" class="t">
+                        {l.data.title}
+                      </a>
+                      {l.data.featured && <span class="feat label">✳ Featured</span>}
+                    </td>
+                    <td>
+                      <a href={`/sellers/${l.data.seller.username}/`}>@{l.data.seller.username}</a>
+                    </td>
+                    <td class="num">{peso(l.data.price)}</td>
+                    <td>
+                      <span class="chip-status">
+                        <span class:list={['dot', l.data.status]} />
+                        {STATUS_LABEL[l.data.status]}
+                      </span>
+                    </td>
+                    <td class="acts">
+                      {l.data.status === 'pending' && <button data-action="approve">Approve</button>}
+                      {(l.data.status === 'hidden' || l.data.status === 'rejected') && <button data-action="restore">Restore</button>}
+                      {l.data.status !== 'hidden' && <button data-action="hide">Hide</button>}
+                      <button data-action={l.data.featured ? 'unfeature' : 'feature'}>{l.data.featured ? 'Unfeature' : 'Feature'}</button>
+                      <a href={`/sell/${l.uuid}/`}>Edit</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {listings.length === 0 && <p class="empty-row muted">No listings match.</p>}
+          </div>
+        </section>
+      )
+    }
+
+    {
+      tab === 'sellers' && (
+        <section class="table-wrap" data-lenis-prevent>
+          <table class="table">
+            <thead>
+              <tr class="label muted">
+                <th>Seller</th>
+                <th>Contact</th>
+                <th>Listings</th>
+                <th>Joined</th>
+                <th>Role</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr data-user={u.id}>
+                  <td>
+                    <a href={`/sellers/${u.username}/`} class="t">
+                      {u.display_name}
+                    </a>
+                    <span class="label muted"> @{u.username}</span>
+                  </td>
+                  <td class="label muted">
+                    {[u.messenger && 'Messenger', u.phone && 'Phone', u.instagram && 'IG'].filter(Boolean).join(' · ') || '—'}
+                  </td>
+                  <td class="num">{u.listings?.[0]?.count ?? 0}</td>
+                  <td class="label muted">{shortDate(new Date(u.created_at))}</td>
+                  <td>
+                    <span class="chip-status">
+                      {u.role === 'admin' ? 'Admin' : u.verified ? '✓ Verified' : 'Seller'}
+                    </span>
+                  </td>
+                  <td class="acts">
+                    {u.role !== 'admin' && <button data-user-verify={u.verified ? 'false' : 'true'}>{u.verified ? 'Unverify' : 'Verify'}</button>}
+                    {u.id !== user?.id && (
+                      <button data-user-role={u.role === 'admin' ? 'user' : 'admin'}>{u.role === 'admin' ? 'Remove admin' : 'Make admin'}</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p class="hint label muted">Verified sellers skip the review queue. Admins can moderate everything, so only promote people you trust.</p>
+        </section>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<script>
+  import { toast } from '../../lib/toast';
+
+  const post = async (url: string, body: object) => {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? 'Something went wrong.');
+    return data;
+  };
+
+  document.addEventListener('click', async (e) => {
+    const btn = (e.target as Element).closest<HTMLButtonElement>('button[data-action], button[data-user-verify], button[data-user-role]');
+    if (!btn) return;
+    try {
+      if (btn.dataset.action) {
+        const id = btn.closest<HTMLElement>('[data-listing]')!.dataset.listing!;
+        let note: string | null = null;
+        if (btn.dataset.action === 'reject') {
+          note = prompt('Reason for the seller (they’ll see this):', 'Please add clearer photos, including the tag.');
+          if (!note) return;
+        }
+        if (btn.dataset.action === 'hide' && !confirm('Hide this listing from the public?')) return;
+        btn.disabled = true;
+        await post(`/api/admin/listings/${id}`, { action: btn.dataset.action, ...(note ? { note } : {}) });
+        if (btn.dataset.action === 'approve' || btn.dataset.action === 'reject') {
+          btn.closest('.qcard')?.classList.add('done');
+          toast(btn.dataset.action === 'approve' ? 'Approved — it’s live.' : 'Sent back to the seller.');
+          setTimeout(() => location.reload(), 600);
+        } else location.reload();
+      } else {
+        const id = btn.closest<HTMLElement>('[data-user]')!.dataset.user!;
+        const body = btn.dataset.userVerify ? { verified: btn.dataset.userVerify === 'true' } : { role: btn.dataset.userRole };
+        if (body.role === 'admin' && !confirm('Give this person full admin access?')) return;
+        btn.disabled = true;
+        await post(`/api/admin/users/${id}`, body);
+        location.reload();
+      }
+    } catch (err) {
+      btn.disabled = false;
+      toast((err as Error).message);
+    }
+  });
+</script>
+
+<style>
+  .page {
+    padding-bottom: 120px;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    margin-bottom: 28px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stats a {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px 20px;
+    background: var(--paper);
+    transition: background 0.3s;
+  }
+  .stats a:hover {
+    background: var(--paper-2);
+  }
+  .stats strong {
+    font: 400 48px/1 var(--display);
+  }
+  .stats .hot strong {
+    color: var(--accent);
+  }
+  .tabs {
+    display: flex;
+    gap: 24px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+  .tabs a {
+    padding: 12px 0;
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+    font: 400 26px var(--display);
+    color: var(--muted);
+  }
+  .tabs a[aria-current='page'] {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .tabs sup {
+    font: 500 11px var(--mono);
+    color: var(--accent);
+  }
+  .empty {
+    font-size: 44px;
+    padding: 48px 0;
+    text-align: center;
+  }
+  .queue {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .qcard {
+    display: grid;
+    grid-template-columns: minmax(200px, 320px) 1fr auto;
+    gap: 24px;
+    padding: 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    transition:
+      opacity 0.5s,
+      transform 0.5s var(--ease);
+  }
+  .qcard.done {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  .qphotos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    align-content: start;
+  }
+  .qphotos img,
+  .qphotos .ph {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: 4px;
+    background: var(--paper-2);
+  }
+  .qphotos img:first-child,
+  .qphotos .ph {
+    grid-column: span 4;
+  }
+  .qbody {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .qtitle {
+    font: 400 32px/1.05 var(--display);
+  }
+  .qtitle:hover {
+    color: var(--accent);
+  }
+  .desc {
+    font-size: 14px;
+    max-height: 7.5em;
+    overflow: hidden;
+  }
+  .qbody a {
+    text-decoration: underline;
+  }
+  .qacts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .qacts .link {
+    align-self: center;
+    margin-top: 6px;
+  }
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-width: 640px;
+  }
+  .filters .select {
+    width: 200px;
+  }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .table th {
+    text-align: left;
+    font-weight: 400;
+    padding: 10px 12px 10px 0;
+    border-bottom: 1px solid var(--line-strong);
+    white-space: nowrap;
+  }
+  .table td {
+    padding: 12px 12px 12px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .table .t {
+    font: 400 20px/1.15 var(--display);
+  }
+  .table a:hover {
+    color: var(--accent);
+  }
+  .feat {
+    margin-left: 8px;
+    color: var(--accent);
+    font-size: 10px;
+  }
+  .acts {
+    white-space: nowrap;
+    text-align: right;
+  }
+  .acts button,
+  .acts a {
+    background: none;
+    border: 0;
+    padding: 4px 6px;
+    font: 400 11px var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    color: var(--ink-2);
+  }
+  .acts button:hover {
+    color: var(--accent);
+  }
+  .empty-row,
+  .hint {
+    padding: 20px 0;
+  }
+  @media (max-width: 860px) {
+    .stats {
+      grid-template-columns: 1fr 1fr;
+    }
+    .qcard {
+      grid-template-columns: 1fr;
+    }
+    .qacts {
+      flex-direction: row;
+    }
+    .qacts .btn {
+      flex: 1;
+    }
+    .filters {
+      flex-wrap: wrap;
+    }
+  }
+</style>

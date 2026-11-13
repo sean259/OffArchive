@@ -1,0 +1,87 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AccountNav from '../../components/AccountNav.astro';
+import ListingForm from '../../components/ListingForm.astro';
+
+const { user, profile } = Astro.locals;
+if (user && !profile?.messenger && !profile?.phone) return Astro.redirect('/account/profile/?next=/sell/');
+---
+
+<BaseLayout title="Sell an item" noindex>
+  <div class="wrap page">
+    <AccountNav />
+    <div class="grid">
+      <aside class="intro">
+        <p class="label muted">(Sell)</p>
+        <h1 class="h">List a <em>piece.</em></h1>
+        <ol class="tips">
+          <li><span>a</span> Shoot in daylight on a plain wall or floor.</li>
+          <li><span>b</span> Show the tag, the soles or the spine, and any flaws up close.</li>
+          <li><span>c</span> Add flat measurements. Pieces with them sell faster.</li>
+          <li><span>d</span> Price fairly: check what’s sold on <a href="/released/">Released</a>.</li>
+        </ol>
+      </aside>
+      <div class="main">
+        {user && <ListingForm userId={user.id} verified={Boolean(profile?.verified || profile?.role === 'admin')} />}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-bottom: 120px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 4fr 1fr 7fr;
+    align-items: start;
+  }
+  .intro {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+  }
+  .h {
+    font-size: clamp(44px, 5vw, 76px);
+    margin: 14px 0 28px;
+  }
+  .tips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .tips li {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+    font-size: 15px;
+  }
+  .tips span {
+    font: italic 400 20px/1 var(--display);
+    color: var(--accent);
+  }
+  .tips a {
+    text-decoration: underline;
+  }
+  .main {
+    grid-column: 3;
+  }
+  @media (max-width: 960px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .intro {
+      position: static;
+    }
+    .tips {
+      display: none;
+    }
+    .main {
+      grid-column: 1;
+    }
+  }
+</style>

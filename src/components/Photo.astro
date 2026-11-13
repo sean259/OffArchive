@@ -1,0 +1,29 @@
+---
+/**
+ * Renders a listing photo from either source:
+ *  - local images (Markdown items) → optimized by Astro at build time
+ *  - uploaded photos (Supabase Storage URLs) → already compressed in the browser on upload
+ */
+import { Image } from 'astro:assets';
+import { isRemote, type Photo } from '../lib/items';
+
+interface Props {
+  photo: Photo;
+  alt: string;
+  sizes?: string;
+  widths?: number[];
+  loading?: 'eager' | 'lazy';
+  class?: string;
+  hidden?: boolean;
+}
+
+const { photo, alt, sizes, widths = [400, 800, 1200], loading = 'lazy', class: cls, hidden } = Astro.props;
+---
+
+{
+  isRemote(photo) ? (
+    <img src={photo.src} alt={alt} loading={loading} decoding="async" class={cls} hidden={hidden} width={photo.width} height={photo.height} />
+  ) : (
+    <Image src={photo} alt={alt} widths={widths} sizes={sizes} loading={loading} class={cls} hidden={hidden} />
+  )
+}

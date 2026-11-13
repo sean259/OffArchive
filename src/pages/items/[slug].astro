@@ -1,5 +1,4 @@
 ---
-import { render } from 'astro:content';
 import { getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Gallery from '../../components/Gallery.astro';
@@ -8,60 +7,59 @@ import ShareButton from '../../components/ShareButton.astro';
 import SaveButton from '../../components/SaveButton.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import FitFinder from '../../components/FitFinder.astro';
+import SellerCard from '../../components/SellerCard.astro';
 import {
   getItems,
+  getItemBySlug,
   categoryOf,
   catalogNo,
   itemPath,
+  isPublic,
+  isRemote,
+  messengerFor,
   MEASUREMENT_LABELS,
   fitData,
   STATUS_LABEL,
-  type Item,
 } from '../../lib/items';
 import { peso, shortDate } from '../../lib/format';
 import { SITE } from '../../config/site';
 
-export async function getStaticPaths() {
-  const items = await getItems();
-  return items.map((item, i) => ({
-    params: { slug: item.id },
-    props: { item, items, prev: items[i - 1], next: items[i + 1] },
-  }));
-}
+const slug = Astro.params.slug ?? '';
+// The request's client lets owners and admins preview listings that aren't public yet.
+const item = await getItemBySlug(slug, Astro.locals.supabase);
+if (!item) return Astro.rewrite('/404');
 
-interface Props {
-  item: Item;
-  items: Item[];
-  prev?: Item;
-  next?: Item;
-}
+const items = await getItems();
+const index = items.findIndex((i) => i.id === item.id);
+const prev = index > 0 ? items[index - 1] : undefined;
+const next = index >= 0 ? items[index + 1] : undefined;
 
-const { item, items, prev, next } = Astro.props;
-const { Content } = await render(item);
 const d = item.data;
+const seller = d.seller;
 const category = categoryOf(item);
 const isClothing = category.slug === 'clothing';
 const fit = fitData(item);
 const sold = d.status === 'sold';
+const preview = !isPublic(item);
+const isOwner = Astro.locals.user?.id === seller.id;
+const isAdmin = Astro.locals.profile?.role === 'admin';
 const pageUrl = new URL(itemPath(item), Astro.site ?? SITE.url).href;
+const paragraphs = item.body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 
 const measurements = Object.entries(d.measurements ?? {}).filter(([, v]) => v) as [string, string][];
 const sameCategory = items.filter((i) => i.id !== item.id && i.data.category === d.category && i.data.status !== 'sold');
 const others = items.filter((i) => i.id !== item.id && i.data.category !== d.category && i.data.status === 'available');
 const related = [...sameCategory, ...others].slice(0, 4);
 
-const message = `Hi! I'm interested in the ${d.title} (${d.size}, ${peso(d.price)}). Is it still available? ${pageUrl}`;
+const message = `Hi! I'm interested in the ${d.title} (${d.size}, ${peso(d.price)}) on OFFARCHIVE. Is it still available? ${pageUrl}`;
+const contactHref = seller.messenger ? messengerFor(seller) : seller.phone ? `sms:${seller.phone.replace(/\s/g, '')}` : null;
 
 const cover = d.images[0];
-// Share image: the cover photo if there is one, otherwise the generated card (pages/og/items/[slug].png.ts).
-const ogImage = cover ? (await getImage({ src: cover, width: 1200, format: 'jpeg' })).src : `/og/items/${item.id}.png`;
-const description = `${d.title} — ${d.condition} condition, size ${d.size}, ${peso(d.price)}. ${STATUS_LABEL[d.status]} at ${SITE.name}`;
+const ogImage = !cover ? '/og/default.png' : isRemote(cover) ? cover.src : (await getImage({ src: cover, width: 1200, format: 'jpeg' })).src;
+const description = `${d.title} — ${d.condition} condition, size ${d.size}, ${peso(d.price)}. ${STATUS_LABEL[d.status]} on ${SITE.name}`;
 
-const availability = {
-  available: 'https://schema.org/InStock',
-  reserved: 'https://schema.org/LimitedAvailability',
-  sold: 'https://schema.org/SoldOut',
-}[d.status];
+const availability =
+  d.status === 'available' ? 'https://schema.org/InStock' : d.status === 'reserved' ? 'https://schema.org/LimitedAvailability' : 'https://schema.org/SoldOut';
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Product',
@@ -70,7 +68,7 @@ const jsonLd = {
   sku: `OA-${catalogNo(item)}`,
   ...(d.brand && { brand: { '@type': 'Brand', name: d.brand } }),
   image: new URL(ogImage, pageUrl).href,
-  description: item.body?.trim() || description,
+  description: item.body || description,
   offers: {
     '@type': 'Offer',
     price: d.price,
@@ -78,20 +76,43 @@ const jsonLd = {
     availability,
     itemCondition: 'https://schema.org/UsedCondition',
     url: pageUrl,
+    seller: { '@type': seller.official ? 'Organization' : 'Person', name: seller.name },
   },
 };
 
-const statusNote = {
+const statusNote: Record<string, string> = {
   available: 'Available — message to reserve.',
   reserved: 'On hold for another buyer. Message to join the waitlist.',
   sold: 'This piece has found a new home.',
-}[d.status];
+  pending: 'In review — not visible to the public yet.',
+  rejected: 'Needs changes before it can go live.',
+  hidden: 'Hidden by an admin.',
+};
+const trust = seller.official
+  ? SITE.trust
+  : ['One of one', seller.verified ? 'Verified seller' : 'Reviewed by OFFARCHIVE.', seller.location];
 ---
 
-<BaseLayout title={d.title} description={description} image={ogImage}>
+<BaseLayout title={d.title} description={description} image={ogImage} noindex={preview}>
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />
 
   <article class="wrap item">
+    {
+      (preview || isOwner || isAdmin) && (
+        <div class:list={['owner-bar', d.status]}>
+          <span class="label">
+            <span class:list={['dot', d.status]} /> {preview ? `Preview · ${STATUS_LABEL[d.status]}` : 'Your listing'}
+          </span>
+          {d.status === 'rejected' && d.reviewNote && <span class="note-text">Admin note: {d.reviewNote}</span>}
+          {d.status === 'pending' && <span class="note-text">An admin will review it soon. You'll see it go live in your account.</span>}
+          {(isOwner || isAdmin) && item.uuid && (
+            <a class="link" href={`/sell/${item.uuid}/`}>
+              Edit listing
+            </a>
+          )}
+        </div>
+      )
+    }
     <nav class="crumbs label muted" aria-label="Breadcrumb">
       <a href="/#archive">Archive</a>
       <span aria-hidden="true">/</span>
@@ -115,7 +136,7 @@ const statusNote = {
           <span class="price num">{sold ? <s>{peso(d.price)}</s> : peso(d.price)}</span>
           <span class="status label">
             <span class:list={['dot', d.status]}></span>
-            {statusNote}
+            {statusNote[d.status]}
           </span>
         </div>
 
@@ -156,7 +177,21 @@ const statusNote = {
         }
 
         <div class="actions" data-main-cta>
-          <MessengerButton message={message} disabled={sold} block />
+          {
+            contactHref && !preview ? (
+              <MessengerButton
+                message={message}
+                disabled={sold}
+                block
+                href={contactHref}
+                label={seller.messenger ? (seller.official ? 'Message on Messenger' : `Message ${seller.name.split(' ')[0]}`) : 'Text the seller'}
+              />
+            ) : (
+              <span class="btn btn--block" aria-disabled="true">
+                {preview ? 'Not live yet' : 'Seller has no contact set'}
+              </span>
+            )
+          }
           <div class="secondary">
             <SaveButton id={item.id} title={d.title} withLabel />
             <ShareButton title={d.title} />
@@ -164,9 +199,11 @@ const statusNote = {
         </div>
         {!sold && <p class="label muted hint">Tapping the button copies a ready-made message for you.</p>}
 
+        <SellerCard seller={seller} />
+
         <ul class="trust label">
           {
-            SITE.trust.map((t) => (
+            trust.map((t) => (
               <li>
                 <span class="star">✳</span>
                 {t}
@@ -179,9 +216,9 @@ const statusNote = {
           <details open>
             <summary>Description</summary>
             <div class="body prose">
-              <Content />
+              {paragraphs.map((p) => <p>{p}</p>)}
               {d.fit && <p><strong>Fit:</strong> {d.fit}</p>}
-              {isClothing && <p class="note">Seller reference is {SITE.sellerHeight}. Please refer to actual garment measurements for the best fit.</p>}
+              {isClothing && seller.official && <p class="note">Seller reference is {SITE.sellerHeight}. Please refer to actual garment measurements for the best fit.</p>}
             </div>
           </details>
           {
@@ -216,7 +253,20 @@ const statusNote = {
           <details>
             <summary>Payment &amp; delivery</summary>
             <div class="body">
-              <p class="muted">{SITE.delivery}</p>
+              {seller.official ? (
+                <p class="muted">{SITE.delivery}</p>
+              ) : (
+                <>
+                  <p class="muted">
+                    Payment and handoff are arranged directly with {seller.name}. OFFARCHIVE. doesn't handle payments for community sellers.
+                  </p>
+                  <ul class="safety muted">
+                    <li>Meet in a busy public place, or ask for photos and a tracking number when shipping.</li>
+                    <li>Check the item before paying. Never send your OTP, password, or e-wallet PIN.</li>
+                    <li>Something off? Message us and we'll look into the listing.</li>
+                  </ul>
+                </>
+              )}
               <a class="link" href="/how-to-buy/">Full buying guide</a>
             </div>
           </details>
@@ -269,7 +319,7 @@ const statusNote = {
   }
 
   {
-    !sold && (
+    !sold && !preview && contactHref && (
       <div class="buybar" data-buybar aria-hidden="true">
         <div>
           <span class="bt">{d.title}</span>
@@ -277,7 +327,7 @@ const statusNote = {
             {peso(d.price)} · {d.size}
           </span>
         </div>
-        <MessengerButton message={message} label="Message" />
+        <MessengerButton message={message} label="Message" href={contactHref ?? undefined} />
       </div>
     )
   }
@@ -298,6 +348,38 @@ const statusNote = {
 </script>
 
 <style>
+  .owner-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px 20px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: var(--paper-2);
+  }
+  .owner-bar.rejected {
+    border-color: var(--accent);
+  }
+  .owner-bar .label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .note-text {
+    flex: 1;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .safety {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+  }
+  .safety li + li {
+    margin-top: 4px;
+  }
   .item {
     padding-top: 20px;
     padding-bottom: clamp(64px, 8vw, 120px);

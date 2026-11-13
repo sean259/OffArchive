@@ -58,6 +58,7 @@ const vouches = defineCollection({
     name: z.string(), // e.g. "Kim R." or "@handle"
     item: z.string().optional(), // what they bought
     date: z.coerce.date().optional(),
+    draft: z.boolean().default(false), // true = hidden (handy for the example entry)
   }),
 });
 

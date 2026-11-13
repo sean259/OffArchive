@@ -1,0 +1,141 @@
+---
+/** Edit your public seller profile and contact details. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AccountNav from '../../components/AccountNav.astro';
+import { safeNext } from '../../lib/api';
+
+const { profile } = Astro.locals;
+const q = Astro.url.searchParams;
+const next = safeNext(q.get('next'), '/account/');
+const error = q.get('error');
+const p = profile;
+---
+
+<BaseLayout title="Profile" noindex>
+  <div class="wrap page">
+    <AccountNav />
+    <div class="grid">
+      <div class="intro">
+        <h1 class="h">Your seller <em>profile.</em></h1>
+        <p class="muted">
+          This shows on your listings and your public page. Buyers contact you directly, so add at least one way to reach you.
+        </p>
+      </div>
+
+      <form method="post" action="/api/profile/" class="form">
+        {error && <div class="notice error">{error}</div>}
+        {next !== '/account/' && <div class="notice">Add a Messenger username or phone number, then you can start listing.</div>}
+
+        <div class="two">
+          <label class="field">
+            <span class="label">Display name</span>
+            <input class="input" name="display_name" value={p?.display_name} required maxlength="60" autocomplete="name" />
+          </label>
+          <label class="field">
+            <span class="label">Username</span>
+            <input class="input" name="username" value={p?.username} required pattern="[a-z0-9][a-z0-9_.]{2,23}" maxlength="24" autocapitalize="none" />
+            <span class="help">offarchive / sellers / <b>{p?.username}</b></span>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="label">Location</span>
+          <input class="input" name="location" value={p?.location ?? 'Cebu, Philippines'} maxlength="60" placeholder="e.g. Mandaue, Cebu" />
+        </label>
+
+        <label class="field">
+          <span class="label">Short bio (optional)</span>
+          <textarea class="textarea" name="bio" maxlength="280" rows="3" placeholder="What you sell, meetup spots, how fast you reply…">{p?.bio ?? ''}</textarea>
+        </label>
+
+        <fieldset class="contact">
+          <legend class="label">How buyers reach you <span class="muted">· at least one</span></legend>
+          <label class="field">
+            <span class="label">Messenger username</span>
+            <input class="input" name="messenger" value={p?.messenger ?? ''} placeholder="yourname (from m.me/yourname)" autocapitalize="none" />
+            <span class="help">Open Messenger → your profile → share link. It's the part after m.me/.</span>
+          </label>
+          <div class="two">
+            <label class="field">
+              <span class="label">Mobile number</span>
+              <input class="input" name="phone" value={p?.phone ?? ''} placeholder="0917 555 0101" inputmode="tel" autocomplete="tel" />
+              <span class="help">Shown publicly on your listings.</span>
+            </label>
+            <label class="field">
+              <span class="label">Instagram (optional)</span>
+              <input class="input" name="instagram" value={p?.instagram ?? ''} placeholder="@handle" autocapitalize="none" />
+            </label>
+          </div>
+        </fieldset>
+
+        <input type="hidden" name="next" value={next} />
+        <div class="actions">
+          <button class="btn" type="submit">Save profile <span class="arrow">→</span></button>
+          {p?.verified && <span class="chip-status"><span class="dot" /> Verified seller</span>}
+        </div>
+      </form>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-bottom: 120px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 4fr 1fr 7fr;
+    align-items: start;
+  }
+  .intro {
+    grid-column: 1;
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+  }
+  .h {
+    font-size: clamp(40px, 4.4vw, 68px);
+    margin-bottom: 16px;
+  }
+  .form {
+    grid-column: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0;
+    padding: 20px;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+  }
+  .contact legend {
+    padding: 0 6px;
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .intro,
+    .form {
+      grid-column: 1;
+      position: static;
+    }
+    .two {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,22 +1,15 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
-import react from '@astrojs/react';
-import keystatic from '@keystatic/astro';
+import netlify from '@astrojs/netlify';
+import node from '@astrojs/node';
 import { SITE } from './src/config/site.ts';
 
-// The Keystatic editor (/keystatic) runs during `npm run dev` only. The public site stays fully static.
-const isDev = process.argv.includes('dev');
-
-// https://docs.astro.build/en/reference/configuration-reference/
+// Server-rendered so listings, logins and the admin dashboard are always live.
+// Static pages (how-to-buy, size guide, 404) opt into prerendering with `export const prerender = true`.
+// Netlify sets NETLIFY=true during its builds; locally we use the Node adapter so `npm run preview` works.
 export default defineConfig({
   site: SITE.url,
-  integrations: [
-    sitemap({ filter: (page) => !page.includes('/og/') }),
-    ...(isDev ? [react(), keystatic()] : []),
-  ],
-  vite: {
-    // Keystatic's API module imports astro:env, which Vite's dependency pre-bundler can't resolve.
-    optimizeDeps: { exclude: ['@keystatic/astro'] },
-  },
+  output: 'server',
+  adapter: process.env.NETLIFY ? netlify() : node({ mode: 'standalone' }),
+  security: { checkOrigin: true },
 });

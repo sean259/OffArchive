@@ -45,12 +45,21 @@ const sold = status === 'sold' && dimSold;
   <div class="meta">
     <div class="line label muted">
       <span>№ {catalogNo(item)}</span>
-      <span>{category.name}</span>
+      {
+        item.data.seller.official ? (
+          <span class="pick">✳ OFFARCHIVE.</span>
+        ) : (
+          <span class="by">
+            @{item.data.seller.username}
+            {item.data.seller.verified && <span class="tick" title="Verified seller">✓</span>}
+          </span>
+        )
+      }
     </div>
     <h3><a class="stretch" href={itemPath(item)}>{title}</a></h3>
     <div class="line">
       <span class="price num">{status === 'sold' ? <s>{peso(price)}</s> : peso(price)}</span>
-      <span class="label muted">{size} · {condition}</span>
+      <span class="label muted">{category.name === 'Books & Supplies' ? 'Books' : category.name} · {size} · {condition}</span>
     </div>
   </div>
 </article>
@@ -62,6 +71,27 @@ const sold = status === 'sold' && dimSold;
   .media-wrap {
     position: relative;
     margin-bottom: 16px;
+  }
+  .pick {
+    color: var(--accent);
+  }
+  .by {
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tick {
+    display: inline-grid;
+    place-items: center;
+    width: 13px;
+    height: 13px;
+    margin-left: 4px;
+    border-radius: 50%;
+    background: var(--ok);
+    color: #f6f2ec;
+    font-size: 8px;
+    vertical-align: 1px;
   }
   .card :global(.card-save) {
     position: absolute;

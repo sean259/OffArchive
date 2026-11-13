@@ -5,8 +5,8 @@
  * Shares a view-transition name with the item page so the image morphs
  * between the grid and the detail page.
  */
-import { Image } from 'astro:assets';
 import type { Item } from '../lib/items';
+import Photo from './Photo.astro';
 import Illustration from './Illustration.astro';
 import StatusBadge from './StatusBadge.astro';
 
@@ -39,15 +39,8 @@ const [cover, alt] = item.data.images;
   {
     cover ? (
       <>
-        <Image
-          src={cover}
-          alt={item.data.alt ?? item.data.title}
-          widths={[400, 800, 1200]}
-          sizes={sizes}
-          loading={eager ? 'eager' : 'lazy'}
-          class="photo"
-        />
-        {alt && <Image src={alt} alt="" widths={[400, 800, 1200]} sizes={sizes} loading="lazy" class="photo alt" />}
+        <Photo photo={cover} alt={item.data.alt ?? item.data.title} sizes={sizes} loading={eager ? 'eager' : 'lazy'} class="photo" />
+        {alt && <Photo photo={alt} alt="" sizes={sizes} class="photo alt" />}
       </>
     ) : (
       <Illustration kind={item.data.art} />

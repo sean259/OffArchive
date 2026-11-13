@@ -10,10 +10,11 @@ export interface CatalogEntry {
   price: number;
   priceLabel: string;
   size: string;
-  status: 'available' | 'reserved' | 'sold';
+  status: 'available' | 'reserved' | 'sold' | 'pending' | 'rejected' | 'hidden';
   url: string;
   thumb?: string;
   art: string;
+  seller: { username: string; name: string; official: boolean; messenger: string | null; phone: string | null };
 }
 
 let cache: Record<string, CatalogEntry> | null = null;
@@ -32,6 +33,9 @@ export const STATUS_TEXT: Record<CatalogEntry['status'], string> = {
   available: 'Available',
   reserved: 'Reserved',
   sold: 'Sold — released',
+  pending: 'In review',
+  rejected: 'Needs changes',
+  hidden: 'Hidden',
 };
 
 export const esc = (s: string) =>

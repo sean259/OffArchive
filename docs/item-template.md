@@ -5,7 +5,7 @@
 #     (the filename becomes the URL: /items/black-denim-jacket/)
 #  2. Put photos in src/assets/items/black-denim-jacket/
 #  3. Fill in the fields below, delete the ones you don't need.
-#  Easier: run `npm run dev` and use the editor at http://localhost:4321/keystatic
+#  Once Supabase is connected, add items from the Sell page on the site instead.
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 title: Black Denim Jacket
 category: Clothing            # Clothing | Shoes | Books & Supplies

@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "example",
+    "draft": true,
+    "quote": "Example only (drafts are hidden). Replace with a real quote from a buyer who said you can share it, then set draft to false.",
+    "name": "First name L.",
+    "item": "Washed Boxy Tee",
+    "date": "2026-11-13"
+  }
+]

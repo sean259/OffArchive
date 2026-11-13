@@ -1,0 +1,300 @@
+---
+/** Seller dashboard: your listings, their review status, and quick status changes. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AccountNav from '../../components/AccountNav.astro';
+import Illustration from '../../components/Illustration.astro';
+import { fromRow, STATUS_LABEL, itemPath, type Item } from '../../lib/items';
+import { LISTING_SELECT, type ListingWithSeller } from '../../lib/db-types';
+import { peso, shortDate } from '../../lib/format';
+
+const { supabase, user, profile } = Astro.locals;
+let listings: Item[] = [];
+if (supabase && user) {
+  const { data } = await supabase.from('listings').select(LISTING_SELECT).eq('seller_id', user.id).order('created_at', { ascending: false });
+  listings = ((data ?? []) as ListingWithSeller[]).map(fromRow);
+}
+const needsContact = !profile?.messenger && !profile?.phone;
+const count = (s: string) => listings.filter((l) => l.data.status === s).length;
+const NOTICES: Record<string, [string, string]> = {
+  created: ['ok', 'Listing submitted. It’s in review and will go live once an admin approves it.'],
+  live: ['ok', 'Your listing is live.'],
+  updated: ['ok', 'Changes saved.'],
+  deleted: ['ok', 'Listing deleted.'],
+  profile: ['ok', 'Profile saved.'],
+  'admin-only': ['error', 'That page is for admins only.'],
+};
+const notice = NOTICES[Astro.url.searchParams.get('notice') ?? ''];
+---
+
+<BaseLayout title="My listings" noindex>
+  <div class="wrap page">
+    <AccountNav />
+
+    {notice && <div class:list={['notice', notice[0], 'mb']}>{notice[1]}</div>}
+    {
+      needsContact && (
+        <div class="notice mb">
+          <div>
+            <strong>One step before you sell:</strong> add a Messenger username or phone number so buyers can reach you.{' '}
+            <a class="link" href="/account/profile/?next=/sell/">
+              Complete profile
+            </a>
+          </div>
+        </div>
+      )
+    }
+
+    <div class="stats">
+      <div><span class="label muted">Live</span><strong>{count('available') + count('reserved')}</strong></div>
+      <div><span class="label muted">In review</span><strong>{count('pending')}</strong></div>
+      <div><span class="label muted">Needs changes</span><strong>{count('rejected')}</strong></div>
+      <div><span class="label muted">Sold</span><strong>{count('sold')}</strong></div>
+      <a class="btn new" href="/sell/">+ Sell an item</a>
+    </div>
+
+    {
+      listings.length === 0 ? (
+        <div class="empty">
+          <p class="serif">
+            Nothing listed <em>yet.</em>
+          </p>
+          <p class="muted">Snap a few photos, add the size and condition, and you’re live once it’s reviewed.</p>
+          <a class="btn" href="/sell/">
+            List your first piece <span class="arrow">→</span>
+          </a>
+        </div>
+      ) : (
+        <ul class="list">
+          {listings.map((l) => {
+            const d = l.data;
+            const cover = d.images[0];
+            const live = d.status === 'available' || d.status === 'reserved' || d.status === 'sold';
+            return (
+              <li class="row" data-listing={l.uuid}>
+                <a class="thumb frame" href={itemPath(l)}>
+                  {cover && 'src' in cover ? <img src={cover.src} alt="" loading="lazy" /> : <Illustration kind={d.art} />}
+                </a>
+                <div class="info">
+                  <span class="label muted">
+                    № {d.no} · {d.category} · listed {shortDate(d.listed)}
+                  </span>
+                  <a class="title" href={itemPath(l)}>
+                    {d.title}
+                  </a>
+                  <span class="num">{peso(d.price)}</span>
+                  {d.status === 'rejected' && d.reviewNote && <span class="review">Admin note: {d.reviewNote}</span>}
+                </div>
+                <div class="state">
+                  <span class="chip-status">
+                    <span class:list={['dot', d.status]} />
+                    {STATUS_LABEL[d.status]}
+                  </span>
+                  {live && (
+                    <label class="sr-only" for={`st-${l.uuid}`}>
+                      Status
+                    </label>
+                  )}
+                  {live && (
+                    <select class="select mini" id={`st-${l.uuid}`} data-status-select>
+                      {(['available', 'reserved', 'sold'] as const).map((s) => (
+                        <option value={s} selected={d.status === s}>
+                          Mark {STATUS_LABEL[s].toLowerCase()}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                <div class="acts">
+                  <a class="btn btn--ghost btn--sm" href={`/sell/${l.uuid}/`}>
+                    {d.status === 'rejected' ? 'Fix & resubmit' : 'Edit'}
+                  </a>
+                  <button type="button" class="del label" data-delete>
+                    Delete
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<script>
+  import { toast } from '../../lib/toast';
+
+  const call = async (id: string, method: 'PATCH' | 'DELETE', body?: object) => {
+    const res = await fetch(`/api/listings/${id}`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? 'Something went wrong.');
+    return data;
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-listing]').forEach((row) => {
+    const id = row.dataset.listing!;
+    row.querySelector<HTMLSelectElement>('[data-status-select]')?.addEventListener('change', async (e) => {
+      const select = e.currentTarget as HTMLSelectElement;
+      try {
+        await call(id, 'PATCH', { status: select.value });
+        location.reload();
+      } catch (err) {
+        toast((err as Error).message);
+      }
+    });
+    row.querySelector('[data-delete]')?.addEventListener('click', async () => {
+      if (!confirm('Delete this listing and its photos? This can’t be undone.')) return;
+      try {
+        await call(id, 'DELETE');
+        location.href = '/account/?notice=deleted';
+      } catch (err) {
+        toast((err as Error).message);
+      }
+    });
+  });
+</script>
+
+<style>
+  .page {
+    padding-bottom: 120px;
+  }
+  .mb {
+    margin-bottom: 20px;
+  }
+  .stats {
+    display: flex;
+    align-items: stretch;
+    gap: 1px;
+    margin-bottom: 32px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stats div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px 20px;
+    background: var(--paper);
+  }
+  .stats strong {
+    font: 400 44px/1 var(--display);
+  }
+  .stats .new {
+    height: auto;
+    border-radius: 0;
+    align-self: stretch;
+    padding: 0 28px;
+  }
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 72px 1fr auto auto;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .thumb {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    display: block;
+  }
+  .thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .title {
+    font: 400 26px/1.1 var(--display);
+  }
+  .title:hover {
+    color: var(--accent);
+  }
+  .review {
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .mini {
+    width: auto;
+    padding: 6px 30px 6px 10px;
+    font-size: 13px;
+    border-radius: 999px;
+  }
+  .acts {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .del {
+    background: none;
+    border: 0;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .del:hover {
+    color: var(--accent);
+  }
+  .empty {
+    padding: 64px 0;
+    text-align: center;
+  }
+  .empty .serif {
+    font-size: clamp(36px, 4vw, 56px);
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .empty .muted {
+    margin: 0 auto 28px;
+    max-width: 40ch;
+  }
+  @media (max-width: 860px) {
+    .stats {
+      flex-wrap: wrap;
+    }
+    .stats div {
+      flex: 1 1 40%;
+    }
+    .stats .new {
+      flex: 1 1 100%;
+      height: 52px;
+    }
+    .row {
+      grid-template-columns: 64px 1fr;
+      gap: 10px 14px;
+    }
+    .state,
+    .acts {
+      grid-column: 2;
+      align-items: flex-start;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+</style>

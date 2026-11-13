@@ -1,0 +1,190 @@
+---
+/** Public seller profile: who they are, how to reach them, and their pieces. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getItems, getSeller, liveItems, soldItems, messengerFor } from '../../lib/items';
+import { pad } from '../../lib/format';
+
+const seller = await getSeller(Astro.params.username ?? '');
+if (!seller) return Astro.rewrite('/404');
+
+const all = (await getItems()).filter((i) => i.data.seller.username === seller.username);
+const live = liveItems(all);
+const sold = soldItems(all);
+const initial = seller.name.trim().charAt(0).toUpperCase();
+const isMe = Astro.locals.profile?.username === seller.username;
+---
+
+<BaseLayout title={seller.name} description={`${seller.name} on OFFARCHIVE. — ${live.length} pre-loved pieces available. ${seller.bio ?? ''}`.trim()}>
+  <section class="head">
+    <div class="wrap">
+      <div class="top label muted">
+        <span>({seller.official ? 'The archive' : 'Seller'})</span>
+        <span>{seller.location}</span>
+      </div>
+      <div class="intro">
+        <span class:list={['avatar', { official: seller.official }]} aria-hidden="true">{seller.official ? 'O.' : initial}</span>
+        <div>
+          <h1 class="name">
+            {seller.name}
+            {seller.verified && !seller.official && <span class="tick" title="Verified seller">✓</span>}
+          </h1>
+          <p class="label muted">@{seller.username}{seller.verified ? ' · Verified seller' : ''}</p>
+        </div>
+      </div>
+      {seller.bio && <p class="bio">{seller.bio}</p>}
+      <div class="contact">
+        {
+          seller.messenger && (
+            <a class="btn" href={messengerFor(seller)} target="_blank" rel="noopener">
+              Message on Messenger <span class="arrow">→</span>
+            </a>
+          )
+        }
+        {seller.phone && <a class="btn btn--ghost" href={`tel:${seller.phone.replace(/\s/g, '')}`}>Call {seller.phone}</a>}
+        {seller.instagram && <a class="link" href={`https://instagram.com/${seller.instagram}`} target="_blank" rel="noopener">Instagram ↗</a>}
+        {isMe && <a class="link" href="/account/profile/">Edit profile</a>}
+      </div>
+      <dl class="stats">
+        <div><dt class="label muted">Available</dt><dd>{pad(live.length)}</dd></div>
+        <div><dt class="label muted">Released</dt><dd>{pad(sold.length)}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="pieces">
+    <div class="wrap">
+      {
+        live.length ? (
+          <div class="grid">
+            {live.map((item, i) => (
+              <div class="rv" style={`--i:${i % 4}`}>
+                <ProductCard item={item} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="empty serif">
+            Nothing available <em>right now.</em>
+          </p>
+        )
+      }
+      {
+        sold.length > 0 && (
+          <>
+            <h2 class="sub">
+              Already <em>released.</em>
+            </h2>
+            <div class="grid">
+              {sold.map((item) => (
+                <ProductCard item={item} />
+              ))}
+            </div>
+          </>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .head {
+    padding: 28px 0 40px;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 40px;
+  }
+  .intro {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: clamp(72px, 8vw, 112px);
+    height: clamp(72px, 8vw, 112px);
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--on-ink);
+    font: 400 clamp(36px, 4vw, 56px) var(--display);
+    flex: none;
+  }
+  .avatar.official {
+    background: var(--accent);
+    color: #f6f2ec;
+    font: 700 clamp(22px, 2.4vw, 32px) var(--sans);
+    letter-spacing: -0.05em;
+  }
+  .name {
+    font-size: clamp(48px, 7vw, 112px);
+    line-height: 0.9;
+  }
+  .tick {
+    display: inline-grid;
+    place-items: center;
+    width: 0.32em;
+    height: 0.32em;
+    margin-left: 0.15em;
+    border-radius: 50%;
+    background: var(--ok);
+    color: #f6f2ec;
+    font: 500 0.16em var(--sans);
+    vertical-align: 0.5em;
+  }
+  .bio {
+    font: 400 clamp(22px, 2vw, 28px) / 1.3 var(--display);
+    color: var(--ink-2);
+    max-width: 40ch;
+    margin: 32px 0 0;
+  }
+  .contact {
+    display: flex;
+    align-items: center;
+    gap: 14px 20px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .stats {
+    display: flex;
+    gap: 48px;
+    margin: 40px 0 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  dd {
+    margin: 8px 0 0;
+    font: 400 56px/1 var(--display);
+  }
+  .pieces {
+    padding-top: 40px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 56px 20px;
+  }
+  .sub {
+    margin: 96px 0 32px;
+    font-size: clamp(36px, 4vw, 56px);
+  }
+  .empty {
+    font-size: 40px;
+    padding: 40px 0;
+  }
+  @media (max-width: 1100px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 760px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px 12px;
+    }
+  }
+</style>

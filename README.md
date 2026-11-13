@@ -1,74 +1,88 @@
 # OFFARCHIVE.
 
-> Curated. Collected. Released. A personal resale archive of clothing, footwear, and everyday essentials, based in Cebu, Philippines.
+> Curated. Collected. Released. A curated pre-loved marketplace for clothing, footwear, and everyday essentials, based in Cebu, Philippines.
 
-Built with [Astro](https://astro.build) and TypeScript. The public site is plain static HTML: fast on mobile data, free to host. Buyers check out by messaging on Messenger, so there's no cart and no backend.
+Anyone can sign up with their email and list pieces to sell. Admins review every new listing before it goes live. Buyers contact sellers directly on Messenger or by text, so there's no cart and no fees.
+
+**Stack:** [Astro](https://astro.build) (server-rendered, TypeScript) · [Supabase](https://supabase.com) (Postgres, email sign-in, photo storage, row-level security) · Netlify.
 
 ## Quick start
 
 ```bash
 npm install
-npm run dev        # site: http://localhost:4321   editor: http://localhost:4321/keystatic
-npm run build      # type-check + build to dist/
-npm run preview    # serve the built site locally
-npm run photos     # prepare product photos (see below)
+cp .env.example .env   # add your Supabase URL + anon key (see docs/SUPABASE.md)
+npm run dev            # http://localhost:4321
 ```
 
-Requires Node 18.20+ (Node 22 recommended).
+Without the `.env` values the site still runs, read-only, from the Markdown files in `src/content/items`. That's handy for design work. Accounts, selling and admin switch on as soon as Supabase is connected. **Setup guide: [docs/SUPABASE.md](docs/SUPABASE.md).**
 
-## Adding and selling items
+| Command | What it does |
+|---|---|
+| `npm run dev` | Local dev server |
+| `npm run build` | Type-check + production build |
+| `npm run preview` | Run the production build locally |
+| `npm run test:db` | Run the database security tests (30 checks, no Supabase account needed) |
+| `npm run seed:export` | Turn the Markdown items into `supabase/seed.sql` for the one-time import |
+| `npm run photos` | Batch-prepare photos for Markdown items (optional) |
 
-### The easy way: the editor
+Requires Node 18.20+ (Node 22 recommended). On Windows PowerShell, if `npm` is blocked, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once.
 
-1. `npm run dev`, then open <http://localhost:4321/keystatic>
-2. **Items → Add**: fill in the form, upload photos, save.
-3. When it sells, open the item and set **Status → Sold**. It moves from the shop to `/released/`.
+## Who can do what
 
-The editor writes normal Markdown files to `src/content/items/`, so you can still edit them by hand. Commit and push to publish.
+| | Visitor | Seller (signed in) | Admin |
+|---|---|---|---|
+| Browse, search, save, fit finder | ✓ | ✓ | ✓ |
+| Create listings (photos, details, measurements) | | ✓ needs Messenger or phone on profile | ✓ |
+| New listing goes live | | after admin approval (instantly if **verified**) | instantly |
+| Mark own piece reserved / sold, edit, delete | | ✓ own only | ✓ any |
+| Approve, reject (with a note), hide, feature | | | ✓ |
+| Verify sellers, make admins | | | ✓ |
 
-### Photos
+These rules are enforced **in the database** (row-level security and triggers in `supabase/migrations`), not just in the UI. `npm run test:db` proves them.
 
-1. Put raw photos in `photo-inbox/<item-url>/` (e.g. `photo-inbox/black-denim-jacket/`). Filename order becomes photo order.
-2. `npm run photos`
-3. Each photo is rotated, smart-cropped to 4:5, resized, compressed, and stripped of EXIF/GPS data. The output goes to `src/assets/items/<item-url>/01.jpg…`, and the script prints the `images:` list to paste into the item.
+## Using the marketplace
 
-`photo-inbox/` is git-ignored, so raw photos with location data never get published.
-
-### By hand
-
-Copy [`docs/item-template.md`](docs/item-template.md) into `src/content/items/`, rename it (the filename becomes the URL), and fill it in. `npm run build` tells you exactly which field is wrong if something's off. Set `draft: true` to hide an item while you work on it.
+- **Sell:** **Sell** button → log in with email (6-digit code) → add contact details → add photos, details, measurements → submit.
+- **Manage:** **My listings** shows each listing's status (In review, Live, Needs changes with the admin's note, Sold), lets you change the status in one tap, and has edit and delete.
+- **Moderate:** **/admin** → Review queue: Approve, or Reject with a reason (the seller sees it and can fix & resubmit). All listings: hide, feature, edit. Sellers: verify trusted sellers so they skip the queue.
+- Your own pieces (any admin's) carry the **✳ OFFARCHIVE.** badge. Community pieces show **@username**, with ✓ if verified.
 
 ## Project structure
 
 ```
 offarchive/
+├── supabase/
+│   ├── migrations/          ← Database schema + security rules (run in Supabase SQL editor)
+│   ├── tests/rls.test.mjs   Security tests (PGlite, runs offline)
+│   └── seed.sql             Generated import of the Markdown archive
 ├── src/
 │   ├── config/site.ts       ← Brand, Messenger, domain, analytics, newsletter, nav
-│   ├── content/items/       ← One .md file per item
-│   ├── content/vouches.json ← Buyer quotes (section appears when non-empty)
-│   ├── assets/items/        ← Product photos, one folder per item
-│   ├── content.config.ts    Item + vouch schemas
+│   ├── middleware.ts        Session + route guards (/account, /sell, /admin)
+│   ├── lib/
+│   │   ├── items.ts         Data layer: one Item shape from Supabase or Markdown
+│   │   ├── supabase.ts      Supabase clients (public + per-request)
+│   │   ├── api.ts           Validation schemas + API helpers
+│   │   └── fit.ts …         Fit finder, formatting, OG images, saved list, search catalog
+│   ├── pages/
+│   │   ├── index, items/[slug], sellers/[username], released, size-guide, how-to-buy
+│   │   ├── login, auth/callback        Email sign-in
+│   │   ├── account/, sell/             Seller area
+│   │   ├── admin/                      Moderation dashboard
+│   │   └── api/                        listings, profile, auth, admin endpoints
 │   ├── components/          UI building blocks (.astro)
-│   ├── layouts/BaseLayout   <head>, SEO/OG, header, footer, global UI
-│   ├── lib/                 Item helpers, formatting, OG image renderer, saved list, catalog
-│   ├── pages/               /, /items/[slug], /released, /size-guide, /how-to-buy, /og/*, 404
-│   ├── scripts/             Client scripts: ui, motion, saved, search
+│   ├── content/items/       Markdown fallback/seed items
 │   └── styles/              tokens.css (palette, fonts), global.css (shared utilities)
-├── tools/photos.mjs         Photo workflow
-├── keystatic.config.ts      Editor fields
+├── docs/SUPABASE.md         Step-by-step setup
 ├── netlify.toml             Deploy settings
-├── docs/item-template.md
 └── ROADMAP.md
 ```
 
 ## Before going live
 
-Search the code for `TODO`. Then:
-
-- [ ] `src/config/site.ts`: `url` (your domain), `messenger` (Facebook Page username), `replyTime`, `trust`, `delivery`
-- [ ] `src/pages/how-to-buy.astro` and `src/components/HowItWorks.astro`: real payment, meetup, shipping, and returns details
-- [ ] Real photos and measurements on every item
-- [ ] Optional: `analytics`, `newsletter`, `instagram` in `site.ts`
+- [ ] Follow [docs/SUPABASE.md](docs/SUPABASE.md), including **custom SMTP**: Supabase's built-in email won't reach customers
+- [ ] `src/config/site.ts`: `url`, `messenger`, `replyTime`, `trust`, `delivery`
+- [ ] `src/pages/how-to-buy.astro`: real payment, meetup, shipping, returns, and selling rules
+- [ ] Add photos to your imported listings from their Edit pages
 
 ## Branches
 
@@ -78,41 +92,24 @@ Search the code for `TODO`. Then:
 | `main` | What's live. Only updated by merging `dev` once it builds and looks right. |
 
 ```bash
-git switch dev                 # work here
-git add -A && git commit -m "Add black denim jacket"
-git push                       # push dev; check the Netlify deploy preview if enabled
-
-npm run build                  # make sure it builds
-git switch main && git merge --ff-only dev && git push   # promote to live
+git switch dev
+git add -A && git commit -m "Describe the change"
+git push
+npm run build                                           # make sure it builds
+git switch main && git merge --ff-only dev && git push  # promote to live
 git switch dev
 ```
 
-On Netlify, set the production branch to `main` and turn on branch deploys for `dev` to get a preview URL of every change before it goes live.
+## Deploying
 
-## Deploying (free)
-
-**Netlify** (configured): push to GitHub, then "Add new site → Import from Git". `netlify.toml` sets the build, caching, and headers. Cloudflare Pages and Vercel also work (build `npm run build`, output `dist`).
-
-Every push rebuilds the site.
+**Netlify** (configured in `netlify.toml`): import the GitHub repo, set the production branch to `main`, and add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` under Environment variables. Pages are server-rendered by Netlify Functions (free tier is plenty to start). The adapter switches automatically: Netlify builds use `@astrojs/netlify`, local builds use `@astrojs/node`.
 
 ## Features
 
-**Design:** editorial "archive catalogue" look. Instrument Serif display type, bone/ink palette with a rust accent, film grain, catalogue numbers (№ 001…).
+**Marketplace:** email sign-in (code or magic link) · seller profiles with contact details · listing form with in-browser photo compression (EXIF/GPS stripped) and type-aware measurement fields · review queue, rejection notes, hide/feature, verified sellers, multiple admins · public seller pages · owners can preview pending listings · safety tips on community listings.
 
-**Motion** (desktop; touch-friendly fallbacks; off for reduced-motion users):
-- Smooth scrolling, a cursor dot that turns into "View" / "Drag" labels, magnetic buttons
-- Headline rise, scroll reveals, image curtain wipes, gentle parallax, stats that count up
-- A short wordmark intro on the first page of each visit
-- Page-to-page image morphs (Chrome/Edge/Safari 18+); cards glide when filtering
+**Design:** editorial "archive catalogue" look. Instrument Serif display type, bone/ink palette with a rust accent, film grain, catalogue numbers (№ 001…). Motion: smooth scroll, contextual cursor, magnetic buttons, reveals, image wipes, parallax, count-ups, a once-per-visit intro, page-to-page image morphs. All of it is off for reduced-motion users.
 
-**Shopping:**
-- **Just dropped** rail (drag to scroll) for the newest pieces
-- **Search** palette: header icon, `/` or Ctrl/⌘+K
-- **Saved list**: bookmark pieces and ask about all of them in one Messenger message
-- Filter, sort, "Available only", Grid / List view with hover previews; settings kept in the URL
-- Item pages: swipeable gallery on mobile, accordions, sticky mobile buy bar, previous/next links
-- **Fit finder**: visitors enter height, weight (cm/kg or ft-in/lb) and fit preference. Clothing pages say how that piece will fit them, using the piece's measurements when listed and the tag size otherwise. The profile is remembered on their device, matching cards get a "✓ Your size" badge, and the shop gets a "My size" filter. The sizing numbers live in `src/lib/fit.ts` if you need to tune them.
-- **Released** page for sold pieces; **Size guide** with the fit finder, diagrams and a sneaker chart
-- Drop alerts via Messenger (plus an optional email list)
+**Shopping:** Just dropped rail · search palette (`/` or Ctrl/⌘+K) · Saved list that sends one Messenger message per seller · filter / sort / Available only / My size · Grid & List views with hover previews · fit finder (height + weight → size, compared against each piece) · Released page · size guide · drop alerts.
 
-**Foundations:** share images generated for every page, Product/Store structured data, sitemap, robots.txt, self-hosted fonts, optimized images, works without JavaScript.
+**Foundations:** share images, Product/Store structured data, live sitemap, robots.txt, self-hosted fonts, private pages never cached, CSRF protection on form posts.

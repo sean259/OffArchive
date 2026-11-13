@@ -1,0 +1,73 @@
+---
+/** Homepage invite for new sellers. */
+import SectionHead from './SectionHead.astro';
+
+const steps = [
+  { t: 'Sign up with email', d: 'No password. We send you a 6-digit code.' },
+  { t: 'Snap & list', d: 'Add photos, size, condition and price from your phone.' },
+  { t: 'We review it', d: 'Every piece is checked to keep the archive curated and safe.' },
+  { t: 'Buyers message you', d: 'Deal directly on Messenger or text. No fees, no cut.' },
+];
+---
+
+<section class="sell" id="sell">
+  <div class="wrap">
+    <SectionHead index="✳" label="Sell with us">
+      Pass your pieces <em>on.</em>
+      <a slot="aside" class="btn" href="/sell/" data-magnetic>Start selling <span class="arrow">→</span></a>
+    </SectionHead>
+    <ol class="steps">
+      {
+        steps.map((s, i) => (
+          <li class="rv" style={`--i:${i}`}>
+            <span class="n">0{i + 1}</span>
+            <h3>{s.t}</h3>
+            <p class="muted">{s.d}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .sell {
+    background: var(--paper-2);
+  }
+  .sell :global(.shead) {
+    border-color: var(--line-strong);
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 20px;
+  }
+  li {
+    padding: 24px;
+    border-radius: 12px;
+    background: var(--paper);
+  }
+  .n {
+    display: block;
+    font: italic 400 48px/1 var(--display);
+    color: var(--accent);
+    margin-bottom: 28px;
+  }
+  h3 {
+    font: 400 28px/1.05 var(--display);
+    margin-bottom: 8px;
+  }
+  @media (max-width: 960px) {
+    .steps {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

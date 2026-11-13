@@ -3,8 +3,8 @@
  * Item gallery. Desktop: photos stacked vertically beside a sticky info panel.
  * Mobile: swipeable carousel with a counter. Falls back to the illustration.
  */
-import { Image } from 'astro:assets';
 import type { Item } from '../lib/items';
+import Photo from './Photo.astro';
 import ProductMedia from './ProductMedia.astro';
 import StatusBadge from './StatusBadge.astro';
 
@@ -24,8 +24,8 @@ const sizes = '(max-width: 860px) 100vw, 55vw';
           {images.map((src, i) => (
             <div class="frame slide" style={i === 0 ? `view-transition-name: item-${item.id}` : undefined}>
               {i === 0 && <StatusBadge status={status} />}
-              <Image
-                src={src}
+              <Photo
+                photo={src}
                 alt={`${title} — photo ${i + 1} of ${images.length}`}
                 widths={[600, 1000, 1400, 2000]}
                 sizes={sizes}

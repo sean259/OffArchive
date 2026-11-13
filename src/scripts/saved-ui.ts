@@ -24,7 +24,7 @@ function renderDrawer(ids: string[]) {
   const empty = drawer.querySelector<HTMLElement>('[data-saved-empty]')!;
   const foot = drawer.querySelector<HTMLElement>('[data-saved-foot]')!;
   const total = drawer.querySelector<HTMLElement>('[data-saved-total]')!;
-  const ask = drawer.querySelector<HTMLAnchorElement>('[data-saved-ask]')!;
+  const asks = drawer.querySelector<HTMLElement>('[data-saved-asks]')!;
 
   empty.hidden = entries.length > 0;
   foot.hidden = entries.length === 0;
@@ -51,19 +51,26 @@ function renderDrawer(ids: string[]) {
   const sum = open.reduce((n, e) => n + e.price, 0);
   total.textContent = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(sum);
 
-  if (open.length) {
-    const origin = location.origin;
-    ask.dataset.copy =
-      `Hi! I'm interested in ${open.length === 1 ? 'this piece' : 'these pieces'}:\n` +
-      open.map((e) => `• ${e.title} (${e.size}, ${e.priceLabel}) — ${origin}${e.url}`).join('\n') +
-      `\nAre ${open.length === 1 ? 'it' : 'they'} still available?`;
-    ask.removeAttribute('aria-disabled');
-    ask.querySelector('[data-ask-label]')!.textContent =
-      open.length === 1 ? 'Ask about this piece' : `Ask about these ${open.length}`;
-  } else {
-    delete ask.dataset.copy;
-    ask.setAttribute('aria-disabled', 'true');
-  }
+  // One "Ask" button per seller, each with a message listing just their pieces.
+  const groups = new Map<string, CatalogEntry[]>();
+  open.forEach((e) => groups.set(e.seller.username, [...(groups.get(e.seller.username) ?? []), e]));
+  const origin = location.origin;
+  asks.innerHTML = [...groups.values()]
+    .map((group) => {
+      const seller = group[0].seller;
+      const msg =
+        `Hi! I'm interested in ${group.length === 1 ? 'this piece' : 'these pieces'} on OFFARCHIVE.:\n` +
+        group.map((e) => `• ${e.title} (${e.size}, ${e.priceLabel}) — ${origin}${e.url}`).join('\n') +
+        `\nAre ${group.length === 1 ? 'it' : 'they'} still available?`;
+      const who = groups.size > 1 ? ` ${esc(seller.name)}` : '';
+      const count = group.length === 1 ? 'this piece' : `these ${group.length}`;
+      const href = seller.messenger ?? (seller.phone ? `sms:${seller.phone.replace(/\s/g, '')}` : null);
+      if (!href) return '';
+      const verb = seller.messenger ? 'Ask' : 'Text';
+      return `<a class="btn btn--block" href="${esc(href)}" target="_blank" rel="noopener" data-copy="${esc(msg)}">
+          <span>${verb}${who} about ${count}</span><span class="arrow">→</span></a>`;
+    })
+    .join('');
 }
 
 function sync() {
