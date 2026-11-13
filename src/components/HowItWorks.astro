@@ -1,0 +1,72 @@
+---
+// TODO: adjust step 3 to match how you actually hand off items.
+const steps = [
+  { title: 'Browse', body: 'Every piece is one of one. Check size, condition and measurements on each item page. Save the ones you like.' },
+  { title: 'Message', body: 'Tap “Message on Messenger”. We’ll confirm it’s still available and hold it for you.' },
+  { title: 'Meet up or ship', body: 'Pay via GCash, bank transfer, or cash on meetup. Meetups around Cebu, or nationwide shipping.' },
+];
+---
+
+<ol class="steps">
+  {
+    steps.map((s, i) => (
+      <li class="rv" style={`--i:${i}`}>
+        <span class="n">
+          0{i + 1}
+        </span>
+        <h3>{s.title}</h3>
+        <p class="muted">{s.body}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  li {
+    padding: 28px 32px 8px 0;
+  }
+  li + li {
+    padding-left: 32px;
+    border-left: 1px solid var(--line);
+  }
+  .n {
+    display: block;
+    font: italic 400 clamp(64px, 7vw, 112px) / 0.9 var(--display);
+    color: var(--accent);
+    margin-bottom: 28px;
+  }
+  h3 {
+    font: 400 32px/1 var(--display);
+    margin-bottom: 10px;
+  }
+  p {
+    max-width: 36ch;
+  }
+  @media (max-width: 760px) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+    li,
+    li + li {
+      padding: 24px 0;
+      border-left: 0;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      column-gap: 16px;
+    }
+    .n {
+      grid-row: span 2;
+      font-size: 56px;
+      margin: 0;
+    }
+  }
+</style>

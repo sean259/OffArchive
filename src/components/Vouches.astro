@@ -1,0 +1,80 @@
+---
+/**
+ * Buyer vouches. Hidden until src/content/vouches.json has entries.
+ * Only add quotes from real buyers who've said you can share them.
+ */
+import { getCollection } from 'astro:content';
+import SectionHead from './SectionHead.astro';
+
+const vouches = (await getCollection('vouches')).sort(
+  (a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0),
+);
+---
+
+{
+  vouches.length > 0 && (
+    <section class="vouches" id="vouches">
+      <div class="wrap">
+        <SectionHead index="✳" label="Vouches">
+          Kind <em>words.</em>
+          <span slot="aside" class="label muted">
+            From {vouches.length} {vouches.length === 1 ? 'buyer' : 'buyers'}
+          </span>
+        </SectionHead>
+        <ul class="list">
+          {vouches.map((v, i) => (
+            <li class="rv" style={`--i:${i % 3}`}>
+              <blockquote>
+                <span class="q" aria-hidden="true">
+                  “
+                </span>
+                <p>{v.data.quote}</p>
+              </blockquote>
+              <p class="who label muted">
+                — {v.data.name}
+                {v.data.item && <span> · {v.data.item}</span>}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  li {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 28px;
+    padding: 28px;
+    background: var(--paper-2);
+    border-radius: var(--radius);
+  }
+  blockquote {
+    margin: 0;
+  }
+  .q {
+    display: block;
+    font: italic 400 72px/0.6 var(--display);
+    color: var(--accent);
+    height: 32px;
+  }
+  blockquote p {
+    font: 400 clamp(22px, 1.8vw, 28px) / 1.25 var(--display);
+  }
+  @media (max-width: 860px) {
+    .list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

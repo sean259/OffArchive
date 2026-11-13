@@ -1,0 +1,51 @@
+---
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<button type="button" class="share" data-share={title} aria-label="Share this piece">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+    <path d="M12 3v13M7 8l5-5 5 5M5 14v6h14v-6"></path>
+  </svg>
+</button>
+
+<script>
+  import { copy, toast } from '../lib/toast';
+
+  document.querySelectorAll<HTMLButtonElement>('[data-share]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const url = location.origin + location.pathname;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: btn.dataset.share, url });
+        } catch {
+          /* user cancelled */
+        }
+        return;
+      }
+      if (await copy(url)) toast('Link copied.');
+    }),
+  );
+</script>
+
+<style>
+  .share {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: none;
+    transition:
+      background 0.3s,
+      color 0.3s;
+  }
+  .share:hover {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+</style>

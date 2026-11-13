@@ -1,0 +1,114 @@
+---
+/**
+ * Item gallery. Desktop: photos stacked vertically beside a sticky info panel.
+ * Mobile: swipeable carousel with a counter. Falls back to the illustration.
+ */
+import { Image } from 'astro:assets';
+import type { Item } from '../lib/items';
+import ProductMedia from './ProductMedia.astro';
+import StatusBadge from './StatusBadge.astro';
+
+interface Props {
+  item: Item;
+}
+const { item } = Astro.props;
+const { images, title, status } = item.data;
+const sizes = '(max-width: 860px) 100vw, 55vw';
+---
+
+<div class="gallery" data-gallery>
+  {
+    images.length > 0 ? (
+      <>
+        <div class="slides" data-slides>
+          {images.map((src, i) => (
+            <div class="frame slide" style={i === 0 ? `view-transition-name: item-${item.id}` : undefined}>
+              {i === 0 && <StatusBadge status={status} />}
+              <Image
+                src={src}
+                alt={`${title} — photo ${i + 1} of ${images.length}`}
+                widths={[600, 1000, 1400, 2000]}
+                sizes={sizes}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                class="photo"
+              />
+            </div>
+          ))}
+        </div>
+        {images.length > 1 && (
+          <div class="counter label" aria-hidden="true">
+            <span data-current>1</span> / {images.length}
+          </div>
+        )}
+      </>
+    ) : (
+      <ProductMedia item={item} sizes={sizes} eager caption="Illustration · photos coming soon" />
+    )
+  }
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
+    const track = g.querySelector<HTMLElement>('[data-slides]');
+    const current = g.querySelector<HTMLElement>('[data-current]');
+    if (!track || !current) return;
+    track.addEventListener(
+      'scroll',
+      () => {
+        const i = Math.round(track.scrollLeft / track.clientWidth);
+        current.textContent = String(i + 1);
+      },
+      { passive: true },
+    );
+  });
+</script>
+
+<style>
+  .gallery {
+    position: relative;
+  }
+  .slides {
+    display: grid;
+    gap: 12px;
+  }
+  .slide {
+    aspect-ratio: 4 / 5;
+  }
+  .slide :global(.photo) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .counter {
+    display: none;
+  }
+  @media (max-width: 860px) {
+    .slides {
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      margin: 0 calc(var(--gutter) * -1);
+    }
+    .slides::-webkit-scrollbar {
+      display: none;
+    }
+    .slide {
+      flex: 0 0 100%;
+      scroll-snap-align: start;
+      border-radius: 0;
+    }
+    .counter {
+      display: block;
+      position: absolute;
+      right: 0;
+      bottom: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--paper) 88%, transparent);
+    }
+  }
+</style>

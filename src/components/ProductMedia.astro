@@ -1,0 +1,84 @@
+---
+/**
+ * The 4:5 image frame for an item. Shows the cover photo (and swaps to the
+ * second photo on hover, if there is one), otherwise the line illustration.
+ * Shares a view-transition name with the item page so the image morphs
+ * between the grid and the detail page.
+ */
+import { Image } from 'astro:assets';
+import type { Item } from '../lib/items';
+import Illustration from './Illustration.astro';
+import StatusBadge from './StatusBadge.astro';
+
+interface Props {
+  item: Item;
+  sizes?: string;
+  eager?: boolean;
+  badge?: boolean;
+  caption?: string;
+  /** Set false for duplicate copies (e.g. hover previews) to keep transition names unique. */
+  transition?: boolean;
+}
+
+const {
+  item,
+  sizes = '(max-width: 760px) 50vw, (max-width: 1100px) 33vw, 25vw',
+  eager = false,
+  badge = true,
+  caption,
+  transition = true,
+} = Astro.props;
+const [cover, alt] = item.data.images;
+---
+
+<div
+  class:list={['frame media', { swap: Boolean(alt) }]}
+  style={transition ? `view-transition-name: item-${item.id}` : undefined}
+>
+  {badge && <StatusBadge status={item.data.status} />}
+  {
+    cover ? (
+      <>
+        <Image
+          src={cover}
+          alt={item.data.alt ?? item.data.title}
+          widths={[400, 800, 1200]}
+          sizes={sizes}
+          loading={eager ? 'eager' : 'lazy'}
+          class="photo"
+        />
+        {alt && <Image src={alt} alt="" widths={[400, 800, 1200]} sizes={sizes} loading="lazy" class="photo alt" />}
+      </>
+    ) : (
+      <Illustration kind={item.data.art} />
+    )
+  }
+  {caption && !cover && <span class="cap label muted">{caption}</span>}
+</div>
+
+<style>
+  .media {
+    aspect-ratio: 4 / 5;
+  }
+  .media :global(.photo) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+      transform 1.2s var(--ease),
+      opacity 0.6s var(--ease);
+  }
+  .media :global(.photo.alt) {
+    opacity: 0;
+  }
+  :global(.card:hover) .swap :global(.photo.alt) {
+    opacity: 1;
+  }
+  .cap {
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+  }
+</style>

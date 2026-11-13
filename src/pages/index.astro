@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Marquee from '../components/Marquee.astro';
+import LatestDrop from '../components/LatestDrop.astro';
+import Archive from '../components/Archive.astro';
+import Categories from '../components/Categories.astro';
+import About from '../components/About.astro';
+import Vouches from '../components/Vouches.astro';
+import ContactCTA from '../components/ContactCTA.astro';
+import { getItems, liveItems, soldItems } from '../lib/items';
+import { SITE } from '../config/site';
+
+const items = await getItems();
+const live = liveItems(items);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Store',
+  name: SITE.name,
+  description: SITE.description,
+  url: SITE.url,
+  address: { '@type': 'PostalAddress', addressLocality: 'Cebu', addressCountry: 'PH' },
+  currenciesAccepted: 'PHP',
+};
+---
+
+<BaseLayout>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />
+  <Hero items={items} />
+  <Marquee phrases={['Curated', 'Collected', 'Released', 'A new home for old favorites']} />
+  <LatestDrop items={items} />
+  <Archive items={live} releasedCount={soldItems(items).length} />
+  <Categories items={items} />
+  <About />
+  <Vouches />
+  <ContactCTA />
+</BaseLayout>

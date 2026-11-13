@@ -1,0 +1,72 @@
+/* ─────────────────────────────────────────────
+   Design tokens. Warm bone + ink, one rust accent.
+   Light by default; dark via system setting or
+   the header toggle (html[data-theme]).
+   ───────────────────────────────────────────── */
+:root {
+  --paper: #efebe4; /* page */
+  --paper-2: #e6e1d8; /* frames, cards */
+  --paper-3: #dbd5ca; /* hover, pressed */
+  --ink: #141412;
+  --ink-2: #2b2a26;
+  --muted: #6c675e;
+  --faint: #a29d93;
+  --line: rgba(20, 20, 18, 0.12);
+  --line-strong: rgba(20, 20, 18, 0.3);
+  --accent: #8c3a24; /* rust: archive tag */
+  --ok: #5c6a4a;
+  --hold: #a8812f;
+  --on-ink: #efebe4;
+  --scrim: rgba(14, 14, 12, 0.5);
+  --grain-opacity: 0.07;
+
+  --display: 'Instrument Serif', 'Times New Roman', serif;
+  --sans: 'Inter Variable', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'DM Mono', ui-monospace, monospace;
+
+  --header-h: 68px;
+  --gutter: clamp(18px, 3.2vw, 44px);
+  --max: 1480px;
+  --radius: 2px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #100f0d;
+    --paper-2: #1a1916;
+    --paper-3: #25231f;
+    --ink: #ece7de;
+    --ink-2: #d4cec3;
+    --muted: #9b958a;
+    --faint: #67625a;
+    --line: rgba(236, 231, 222, 0.11);
+    --line-strong: rgba(236, 231, 222, 0.28);
+    --accent: #d0714f;
+    --ok: #97a582;
+    --hold: #d4ad60;
+    --on-ink: #100f0d;
+    --grain-opacity: 0.05;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #100f0d;
+  --paper-2: #1a1916;
+  --paper-3: #25231f;
+  --ink: #ece7de;
+  --ink-2: #d4cec3;
+  --muted: #9b958a;
+  --faint: #67625a;
+  --line: rgba(236, 231, 222, 0.11);
+  --line-strong: rgba(236, 231, 222, 0.28);
+  --accent: #d0714f;
+  --ok: #97a582;
+  --hold: #d4ad60;
+  --on-ink: #100f0d;
+  --grain-opacity: 0.05;
+  color-scheme: dark;
+}

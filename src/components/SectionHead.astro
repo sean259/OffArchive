@@ -1,0 +1,55 @@
+---
+/** Consistent editorial section header: (01) Label — Title — aside. */
+interface Props {
+  index: string;
+  label: string;
+}
+const { index, label } = Astro.props;
+---
+
+<header class="shead rv">
+  <div class="tag label muted"><span>({index})</span><span>{label}</span></div>
+  <h2><slot /></h2>
+  <div class="aside"><slot name="aside" /></div>
+</header>
+
+<style>
+  .shead {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+    align-items: end;
+    padding-bottom: 28px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tag {
+    grid-column: 1 / span 3;
+    display: flex;
+    gap: 14px;
+    align-self: start;
+    padding-top: 0.8em;
+  }
+  h2 {
+    grid-column: 4 / span 6;
+  }
+  .aside {
+    grid-column: 10 / -1;
+    justify-self: end;
+    text-align: right;
+  }
+  @media (max-width: 860px) {
+    .shead {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .tag,
+    h2,
+    .aside {
+      grid-column: 1;
+      justify-self: start;
+      text-align: left;
+      padding-top: 0;
+    }
+  }
+</style>

@@ -1,0 +1,152 @@
+---
+import { categoryOf, itemPath, catalogNo, statusRank, type Item } from '../lib/items';
+import { peso } from '../lib/format';
+import ProductMedia from './ProductMedia.astro';
+import SaveButton from './SaveButton.astro';
+
+interface Props {
+  item: Item;
+  eager?: boolean;
+  /** Position in the default ordering (used to reset sorting). */
+  order?: number;
+  sizes?: string;
+  /** False for duplicate copies of a card on the same page (keeps transition names unique). */
+  transition?: boolean;
+  /** Fade sold cards (default). Set false on the Released page. */
+  dimSold?: boolean;
+}
+
+const { item, eager = false, order = 0, sizes, transition = true, dimSold = true } = Astro.props;
+const { title, price, size, condition, status, listed } = item.data;
+const category = categoryOf(item);
+const sold = status === 'sold' && dimSold;
+---
+
+<article
+  class:list={['card', { sold }]}
+  data-card
+  data-id={item.id}
+  data-category={category.slug}
+  data-status={status}
+  data-rank={statusRank(item)}
+  data-price={price}
+  data-listed={listed.getTime()}
+  data-order={order}
+  style={`--vt: card-${item.id}`}
+  data-cursor-label="View"
+>
+  <div class="media-wrap">
+    <ProductMedia item={item} eager={eager} sizes={sizes} transition={transition} />
+    <SaveButton id={item.id} title={title} class="card-save" />
+    <span class="view label" aria-hidden="true">View piece <span>→</span></span>
+  </div>
+  <div class="meta">
+    <div class="line label muted">
+      <span>№ {catalogNo(item)}</span>
+      <span>{category.name}</span>
+    </div>
+    <h3><a class="stretch" href={itemPath(item)}>{title}</a></h3>
+    <div class="line">
+      <span class="price num">{status === 'sold' ? <s>{peso(price)}</s> : peso(price)}</span>
+      <span class="label muted">{size} · {condition}</span>
+    </div>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+  }
+  .media-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .card :global(.card-save) {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+  }
+  .view {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--on-ink);
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 0.5s var(--ease),
+      transform 0.5s var(--ease);
+  }
+  .card:hover .view {
+    opacity: 1;
+    transform: none;
+  }
+  .card:hover :global(.photo:not(.alt)) {
+    transform: scale(1.04);
+  }
+  .card:hover :global(.art) {
+    transform: scale(1.06) rotate(-2deg);
+  }
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+  }
+  h3 {
+    font: 400 24px/1.05 var(--display);
+    letter-spacing: -0.01em;
+  }
+  .stretch::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .stretch:focus-visible {
+    outline: none;
+  }
+  .card:has(.stretch:focus-visible) {
+    outline: 1.5px solid var(--accent);
+    outline-offset: 6px;
+  }
+  .price {
+    font: 500 14px var(--sans);
+  }
+  .sold .media-wrap,
+  .sold h3,
+  .sold .price {
+    opacity: 0.5;
+  }
+  @media (hover: none) {
+    .view {
+      display: none;
+    }
+  }
+  @media (max-width: 760px) {
+    h3 {
+      font-size: 20px;
+    }
+    .line.label,
+    .line .label {
+      font-size: 10px;
+    }
+    .line:last-child {
+      flex-direction: column;
+      gap: 2px;
+    }
+  }
+</style>

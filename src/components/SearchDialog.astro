@@ -1,0 +1,221 @@
+---
+/** Command-palette style search over the whole archive. Logic: scripts/search.ts */
+import { CATEGORIES } from '../config/site';
+---
+
+<dialog class="search" id="search" aria-label="Search the archive">
+  <div class="box">
+    <div class="field">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>
+      </svg>
+      <input
+        type="search"
+        placeholder="Search pieces, brands, sizes…"
+        aria-label="Search pieces"
+        aria-controls="search-results"
+        autocomplete="off"
+        spellcheck="false"
+        data-search-input
+      />
+      <button type="button" class="esc label" data-search-close>Esc</button>
+    </div>
+
+    <div class="quick">
+      <span class="label muted">Browse</span>
+      {CATEGORIES.map((c) => <a class="qchip" href={`/?c=${c.slug}#archive`} data-search-close>{c.name}</a>)}
+      <a class="qchip" href="/released/" data-search-close>Released</a>
+      <a class="qchip" href="/size-guide/" data-search-close>Size guide</a>
+    </div>
+
+    <p class="label muted heading" data-search-heading>Latest pieces</p>
+    <ul class="results" id="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+    <div class="none" data-search-none hidden>
+      <p class="serif">Nothing for “<span data-search-q></span>”.</p>
+      <p class="muted">Try a category, a size like “M” or “US 9”, or message us. We might have it in the next drop.</p>
+    </div>
+
+    <div class="foot label muted">
+      <span class="hide-touch">↑ ↓ to move · ↵ to open · Esc to close</span>
+      <span data-search-total></span>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .search {
+    width: min(720px, calc(100% - 32px));
+    max-width: none;
+    max-height: min(680px, calc(100dvh - 120px));
+    margin: 12vh auto auto;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+  .search::backdrop {
+    background: var(--scrim);
+    backdrop-filter: blur(4px);
+  }
+  .search[open] {
+    animation: drop 0.45s var(--ease);
+  }
+  @keyframes drop {
+    from {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.98);
+    }
+  }
+  .box {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+  }
+  .field {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: 400 28px/1.2 var(--display);
+    outline: none;
+  }
+  input::placeholder {
+    color: var(--faint);
+  }
+  input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .esc {
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: none;
+    padding: 5px 8px;
+  }
+  .quick {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .quick .label {
+    margin-right: 6px;
+  }
+  .qchip {
+    padding: 6px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 13px;
+    transition:
+      background 0.3s,
+      color 0.3s;
+  }
+  .qchip:hover {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+  .heading {
+    padding: 16px 20px 6px;
+  }
+  .results {
+    list-style: none;
+    margin: 0;
+    padding: 0 10px 10px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .results :global(a) {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 10px;
+    border-radius: 4px;
+  }
+  .results :global([aria-selected='true'] a) {
+    background: var(--paper-2);
+  }
+  .results :global(.r-media) {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    background: var(--paper-2);
+    overflow: hidden;
+  }
+  .results :global([aria-selected='true'] .r-media) {
+    background: var(--paper-3);
+  }
+  .results :global(.r-media img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .results :global(.r-media svg) {
+    position: absolute;
+    inset: 10%;
+    width: 80%;
+    height: 80%;
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+  }
+  .results :global(.r-title) {
+    display: block;
+    font: 400 22px/1.1 var(--display);
+  }
+  .results :global(mark) {
+    background: none;
+    color: var(--accent);
+    font-style: italic;
+  }
+  .results :global(.r-side) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .results :global(.sold) {
+    opacity: 0.55;
+  }
+  .none {
+    padding: 24px 20px 32px;
+  }
+  .none .serif {
+    font-size: 30px;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--line);
+  }
+  @media (hover: none) {
+    .hide-touch {
+      visibility: hidden;
+    }
+  }
+  @media (max-width: 760px) {
+    .search {
+      margin-top: 16px;
+      max-height: calc(100dvh - 32px);
+    }
+    input {
+      font-size: 24px;
+    }
+  }
+</style>

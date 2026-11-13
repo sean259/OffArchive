@@ -1,0 +1,169 @@
+---
+import '@fontsource-variable/inter';
+import '@fontsource/instrument-serif/400.css';
+import '@fontsource/instrument-serif/400-italic.css';
+import '@fontsource/dm-mono/400.css';
+import '@fontsource/dm-mono/500.css';
+import '../styles/tokens.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Toast from '../components/Toast.astro';
+import SavedDrawer from '../components/SavedDrawer.astro';
+import SearchDialog from '../components/SearchDialog.astro';
+import Catalog from '../components/Catalog.astro';
+import Cursor from '../components/Cursor.astro';
+import Intro from '../components/Intro.astro';
+import Analytics from '../components/Analytics.astro';
+import { SITE } from '../config/site';
+import { getItems } from '../lib/items';
+
+interface Props {
+  /** Page title; the brand name is appended automatically. */
+  title?: string;
+  description?: string;
+  /** Absolute or root-relative URL to a share image (1200×630 ideal). */
+  image?: string;
+  noindex?: boolean;
+}
+
+const { title, description = SITE.description, image = '/og/default.png', noindex = false } = Astro.props;
+const base = Astro.site ?? SITE.url;
+const fullTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
+const canonical = new URL(Astro.url.pathname, base).href;
+const ogImage = new URL(image, base).href;
+const available = (await getItems()).filter((i) => i.data.status === 'available').length;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#EFEBE4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#100F0D" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_PH" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        try {
+          var t = localStorage.getItem('oa-theme');
+          if (t === 'light' || t === 'dark') d.dataset.theme = t;
+        } catch (e) {}
+        // First page of the session gets the wordmark intro (skipped for reduced motion).
+        try {
+          if (!sessionStorage.getItem('oa-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            d.classList.add('intro');
+            sessionStorage.setItem('oa-intro', '1');
+            setTimeout(function () { d.classList.remove('intro'); }, 2600);
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <Analytics />
+    <slot name="head" />
+  </head>
+  <body>
+    <Intro />
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="ann label">
+      <span class="dot" aria-hidden="true"></span>
+      <span>{available} pieces available</span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span class="hide-sm">{SITE.announcement}</span>
+      <span class="sep hide-sm" aria-hidden="true">/</span>
+      <a href="/how-to-buy/">How to buy →</a>
+    </div>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <SavedDrawer />
+    <SearchDialog />
+    <Toast />
+    <Cursor />
+    <div class="peek" data-peek-layer aria-hidden="true"></div>
+    <Catalog />
+    <script>
+      import '../scripts/ui';
+      import '../scripts/motion';
+      import '../scripts/saved-ui';
+      import '../scripts/search';
+    </script>
+  </body>
+</html>
+
+<style>
+  .ann {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+  .ann .dot {
+    animation: blink 2.4s ease-in-out infinite;
+  }
+  .ann a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .sep {
+    opacity: 0.4;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  @media (max-width: 760px) {
+    .hide-sm {
+      display: none;
+    }
+  }
+
+  .peek {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 70;
+    width: 240px;
+    margin: -150px 0 0 28px;
+    pointer-events: none;
+    opacity: 0;
+    scale: 0.85;
+    transition:
+      opacity 0.35s var(--ease),
+      scale 0.5s var(--ease);
+    will-change: transform;
+  }
+  .peek.on {
+    opacity: 1;
+    scale: 1;
+  }
+  .peek :global(.frame) {
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.35);
+  }
+</style>

@@ -1,0 +1,96 @@
+---
+/**
+ * A brief wordmark curtain on the first page of a visit (once per browser session).
+ * The <head> script in BaseLayout adds html.intro; without it this never shows.
+ */
+import { SITE } from '../config/site';
+---
+
+<div class="intro-curtain" aria-hidden="true">
+  <div class="mark">
+    <span class="ln"><span>OFFARCHIVE<em>.</em></span></span>
+  </div>
+  <div class="meta label">
+    <span>{SITE.tagline}</span>
+    <span>{SITE.location}</span>
+  </div>
+  <span class="bar"></span>
+</div>
+
+<style>
+  .intro-curtain {
+    display: none;
+  }
+  :global(html.intro) .intro-curtain {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    background: var(--ink);
+    color: var(--on-ink);
+    animation: lift 0.9s var(--ease) 1.25s forwards;
+    pointer-events: none;
+  }
+  .mark {
+    font: 700 clamp(48px, 10vw, 140px) / 0.9 var(--sans);
+    letter-spacing: -0.07em;
+  }
+  .mark .ln {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.04em;
+  }
+  .mark .ln > span {
+    display: inline-block;
+    animation: up 0.9s var(--ease) 0.1s both;
+  }
+  .mark em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .meta {
+    display: flex;
+    gap: 32px;
+    opacity: 0;
+    animation: fade 0.6s ease 0.45s forwards;
+  }
+  .bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--accent);
+    transform-origin: left;
+    animation: grow 1.15s var(--ease) both;
+  }
+  @keyframes up {
+    from {
+      transform: translateY(105%);
+    }
+  }
+  @keyframes fade {
+    to {
+      opacity: 0.6;
+    }
+  }
+  @keyframes grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes lift {
+    to {
+      transform: translateY(-100%);
+      visibility: hidden;
+    }
+  }
+  /* Hold the hero headline until the curtain lifts. */
+  :global(html.intro .hero .rise .ln > span) {
+    animation-delay: calc(var(--i, 0) * 110ms + 1.45s) !important;
+  }
+</style>

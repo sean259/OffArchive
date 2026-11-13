@@ -1,0 +1,28 @@
+<div class="toast label" id="toast" role="status" aria-live="polite"></div>
+
+<style>
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    z-index: 80;
+    max-width: calc(100vw - 32px);
+    padding: 13px 20px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--on-ink);
+    opacity: 0;
+    transform: translate(-50%, 20px);
+    pointer-events: none;
+    transition:
+      opacity 0.4s var(--ease),
+      transform 0.5s var(--ease);
+  }
+  .toast.on {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  :global(body:has(.buybar.on)) .toast {
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+</style>

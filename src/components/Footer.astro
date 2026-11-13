@@ -1,0 +1,112 @@
+---
+import { SITE, messengerUrl, CATEGORIES } from '../config/site';
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div class="intro">
+        <p class="serif">Curated. Collected. <em>Released.</em></p>
+        <p class="label muted">Pre-loved pieces, passed on with care. Salamat for shopping secondhand.</p>
+      </div>
+      <nav aria-label="Shop">
+        <span class="label muted">Shop</span>
+        <a href="/#archive">All pieces</a>
+        {CATEGORIES.map((c) => <a href={`/?c=${c.slug}#archive`}>{c.name}</a>)}
+        <a href="/released/">Released</a>
+      </nav>
+      <nav aria-label="Info">
+        <span class="label muted">Info</span>
+        <a href="/how-to-buy/">How to buy</a>
+        <a href="/how-to-buy/#condition">Condition guide</a>
+        <a href="/size-guide/">Size guide</a>
+        <a href="/#about">About</a>
+      </nav>
+      <nav aria-label="Social">
+        <span class="label muted">Say hi</span>
+        <a href={messengerUrl} target="_blank" rel="noopener">Messenger ↗</a>
+        <a href="/#notify">Drop alerts</a>
+        {SITE.instagram && <a href={`https://instagram.com/${SITE.instagram}`} target="_blank" rel="noopener">Instagram ↗</a>}
+        <span class="label muted local">
+          {SITE.location} · <span class="num" data-clock={SITE.timezone}>--:--</span> PHT
+        </span>
+      </nav>
+    </div>
+
+    <div class="big" aria-hidden="true">OFFARCHIVE<span>.</span></div>
+
+    <div class="base label muted">
+      <span>© {year} {SITE.name} All rights reserved.</span>
+      <a class="link" href="#main">Back to top ↑</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    padding: clamp(64px, 8vw, 112px) 0 28px;
+    border-top: 1px solid var(--line);
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: clamp(56px, 8vw, 120px);
+  }
+  .intro .serif {
+    font-size: clamp(32px, 3vw, 44px);
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+  .intro em {
+    color: var(--accent);
+  }
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  nav .label:first-child {
+    margin-bottom: 8px;
+  }
+  nav a {
+    transition: color 0.3s;
+  }
+  nav a:hover {
+    color: var(--accent);
+  }
+  .local {
+    margin-top: 12px;
+  }
+  .big {
+    font: 700 clamp(56px, 16.2vw, 244px) / 0.78 var(--sans);
+    letter-spacing: -0.075em;
+    white-space: nowrap;
+    margin: 0 0 32px -0.04em;
+    overflow: hidden;
+  }
+  .big span {
+    color: var(--accent);
+  }
+  .base {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  .base .link {
+    font: inherit;
+  }
+  @media (max-width: 860px) {
+    .cols {
+      grid-template-columns: 1fr 1fr;
+    }
+    .intro {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

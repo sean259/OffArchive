@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    rect { fill: #171714; }
+    text { fill: #F5F4F0; }
+    @media (prefers-color-scheme: dark) { rect { fill: #F5F4F0; } text { fill: #171714; } }
+  </style>
+  <rect width="64" height="64" rx="12"/>
+  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-weight="800" font-size="34" letter-spacing="-2">O.</text>
+</svg>

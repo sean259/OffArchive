@@ -1,0 +1,187 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import MessengerButton from '../components/MessengerButton.astro';
+import SectionHead from '../components/SectionHead.astro';
+
+/*
+ * TODO: Everything below is starter copy. Edit it to match how you actually
+ * sell (payment methods, meetup spots, couriers, reservation window).
+ */
+const conditions = [
+  { grade: 'Like New', desc: 'Worn once or twice, or never. No visible signs of wear.' },
+  { grade: 'Excellent', desc: 'Lightly used. Minimal wear you’d only notice up close.' },
+  { grade: 'Good', desc: 'Used with visible wear (fading, creasing, sole wear). Flaws are listed and photographed.' },
+  { grade: 'Fair', desc: 'Well-loved. Noticeable flaws, priced accordingly. Read the flaws section carefully.' },
+];
+
+const faqs = [
+  {
+    q: 'How do I reserve an item?',
+    a: 'Message us on Messenger with the item name (the button on each item page copies a message for you). Once confirmed, the piece is held for 24 hours while we arrange payment.',
+  },
+  {
+    q: 'Can I ask about several pieces at once?',
+    a: 'Yes. Tap the bookmark on each piece, open “Saved” in the menu, and use “Ask about these” to copy one message with every link.',
+  },
+  {
+    q: 'What payment methods do you accept?',
+    a: 'GCash, bank transfer, or cash on meetup. Payment details are shared in chat. We will never ask for your password or OTP.',
+  },
+  {
+    q: 'Where can we meet up?',
+    a: 'Public spots around Cebu City, Mandaue and Lapu-Lapu, usually malls or cafés. We’ll agree on a time and place in chat.',
+  },
+  {
+    q: 'Do you ship?',
+    a: 'Yes, nationwide via J&T or LBC. Shipping is paid by the buyer and quoted in chat based on your location. Items ship within 1–2 days of payment.',
+  },
+  {
+    q: 'Can I return an item?',
+    a: 'Because every piece is pre-loved and one of one, all sales are final. That’s why we list measurements and flaws up front. Ask for more photos or measurements before buying.',
+  },
+];
+---
+
+<BaseLayout title="How to buy" description="How buying from OFFARCHIVE. works: reserving, payment, meetups, shipping, and our condition guide.">
+  <section class="intro">
+    <div class="wrap">
+      <p class="label muted kicker">(Buying guide)</p>
+      <h1 class="rise">
+        <span class="ln" style="--i:0"><span>How to</span></span>
+        <span class="ln" style="--i:1"><span><em>buy.</em></span></span>
+      </h1>
+      <p class="lede rv">No checkout, no accounts. Every piece is one of one, so it all happens in a quick, personal chat.</p>
+      <HowItWorks />
+    </div>
+  </section>
+
+  <section id="condition" class="band">
+    <div class="wrap">
+      <SectionHead index="A" label="Grading">
+        Condition <em>guide.</em>
+      </SectionHead>
+      <dl class="grades">
+        {
+          conditions.map((c, i) => (
+            <div class="rv" style={`--i:${i}`}>
+              <dt>{c.grade}</dt>
+              <dd class="muted">{c.desc}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <SectionHead index="B" label="FAQ">
+        Good <em>questions.</em>
+      </SectionHead>
+      <div class="faq">
+        {
+          faqs.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p class="muted">{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap">
+      <h2>Still <em>unsure?</em></h2>
+      <MessengerButton label="Ask us anything" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    padding-top: clamp(40px, 6vw, 80px);
+  }
+  .kicker {
+    margin-bottom: 24px;
+  }
+  .lede {
+    font: 400 clamp(24px, 2.4vw, 34px) / 1.25 var(--display);
+    max-width: 30ch;
+    margin: 40px 0 clamp(56px, 7vw, 96px) 25%;
+  }
+  .band {
+    background: var(--paper-2);
+  }
+  .grades {
+    margin: 0;
+  }
+  .grades div {
+    display: grid;
+    grid-template-columns: 3fr 9fr;
+    gap: 24px;
+    align-items: baseline;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  dt {
+    font: 400 clamp(30px, 3vw, 44px) / 1 var(--display);
+  }
+  dd {
+    margin: 0;
+    font-size: 17px;
+    max-width: 52ch;
+  }
+  details {
+    border-bottom: 1px solid var(--line);
+  }
+  summary {
+    position: relative;
+    cursor: pointer;
+    list-style: none;
+    padding: 24px 48px 24px 0;
+    font: 400 clamp(24px, 2.4vw, 34px) / 1.1 var(--display);
+    transition: color 0.3s;
+  }
+  summary:hover {
+    color: var(--accent);
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: '+';
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font: 300 28px var(--sans);
+    transition: transform 0.4s var(--ease);
+  }
+  details[open] summary::after {
+    transform: translateY(-50%) rotate(45deg);
+  }
+  details p {
+    margin: 0 0 28px;
+    max-width: 60ch;
+    font-size: 17px;
+  }
+  .cta {
+    text-align: center;
+    border-top: 1px solid var(--line);
+  }
+  .cta h2 {
+    margin-bottom: 36px;
+  }
+  @media (max-width: 760px) {
+    .lede {
+      margin-left: 0;
+    }
+    .grades div {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+</style>

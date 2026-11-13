@@ -1,0 +1,122 @@
+---
+import Illustration from './Illustration.astro';
+import HowItWorks from './HowItWorks.astro';
+import SectionHead from './SectionHead.astro';
+import { SITE } from '../config/site';
+
+const principles = [
+  { t: 'One of one', d: 'No restocks, no duplicates. When a piece is gone, it’s gone.' },
+  { t: 'Honest condition', d: 'Every flaw is listed and photographed. No surprises at handoff.' },
+  { t: 'Personal handoff', d: 'Real conversations, not checkout forms. Ask anything before you buy.' },
+];
+---
+
+<section id="about">
+  <div class="wrap">
+    <SectionHead index="04" label="About">
+      Every piece has <em>another</em> chapter.
+    </SectionHead>
+
+    <p class="statement rv">
+      {SITE.name} started with a simple idea: <em>make room for what comes next.</em> A personal collection of clothing, footwear, and
+      useful finds, carefully passed on to people who will appreciate them.
+    </p>
+
+    <div class="split">
+      <!-- TODO: swap for a photo of the archive / rack. -->
+      <div class="frame photo rv-img" role="img" aria-label="Illustration of a track jacket" data-parallax="0.05">
+        <Illustration kind="jacket" />
+        <span class="label muted cap">Fig. 01 — The archive, {SITE.location}</span>
+      </div>
+      <ul class="principles">
+        {
+          principles.map((p, i) => (
+            <li class="rv" style={`--i:${i}`}>
+              <span class="label muted">({String.fromCharCode(97 + i)})</span>
+              <div>
+                <h3>{p.t}</h3>
+                <p class="muted">{p.d}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="process">
+      <div class="phead rv">
+        <span class="label muted">How it works</span>
+        <a class="link" href="/how-to-buy/">Payments, shipping &amp; FAQ</a>
+      </div>
+      <HowItWorks />
+    </div>
+  </div>
+</section>
+
+<style>
+  .statement {
+    font: 400 clamp(30px, 3.6vw, 56px) / 1.12 var(--display);
+    letter-spacing: -0.01em;
+    max-width: 30ch;
+    margin: 0 0 clamp(56px, 8vw, 120px) 25%;
+  }
+  .statement em {
+    color: var(--accent);
+  }
+  .split {
+    display: grid;
+    grid-template-columns: 5fr 1fr 6fr;
+    align-items: end;
+  }
+  .photo {
+    grid-column: 1;
+    aspect-ratio: 4 / 5;
+  }
+  .cap {
+    position: absolute;
+    left: 16px;
+    bottom: 14px;
+  }
+  .principles {
+    grid-column: 3;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .principles li {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .principles .label {
+    padding-top: 10px;
+  }
+  .principles h3 {
+    font: 400 clamp(30px, 3vw, 44px) / 1 var(--display);
+    margin-bottom: 8px;
+  }
+  .process {
+    margin-top: clamp(80px, 10vw, 160px);
+  }
+  .phead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 860px) {
+    .statement {
+      margin-left: 0;
+    }
+    .split {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .principles {
+      grid-column: 1;
+    }
+  }
+</style>

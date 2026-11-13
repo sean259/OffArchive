@@ -1,0 +1,67 @@
+---
+/** Bookmark toggle. State is handled globally by scripts/saved-ui.ts. */
+interface Props {
+  id: string;
+  title: string;
+  /** Show a "Save / Saved" text label (item page) instead of the round icon (cards). */
+  withLabel?: boolean;
+  class?: string;
+}
+const { id, title, withLabel = false, class: cls } = Astro.props;
+---
+
+<button
+  type="button"
+  class:list={['save', withLabel ? 'btn btn--ghost' : 'round', cls]}
+  data-save={id}
+  aria-pressed="false"
+  aria-label={withLabel ? undefined : `Save ${title}`}
+>
+  <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+    <path d="M6 3h12v18l-6-4.5L6 21z"></path>
+  </svg>
+  {withLabel && <span data-save-text>Save</span>}
+</button>
+
+<style>
+  .save svg {
+    fill: transparent;
+    transition: fill 0.3s;
+  }
+  .save[aria-pressed='true'] svg {
+    fill: currentColor;
+  }
+  .save.pop svg {
+    animation: pop 0.5s var(--ease);
+  }
+  @keyframes pop {
+    40% {
+      transform: scale(1.35);
+    }
+  }
+  .round {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition:
+      background 0.3s,
+      color 0.3s,
+      transform 0.4s var(--ease);
+  }
+  .round:hover {
+    transform: scale(1.08);
+  }
+  .round[aria-pressed='true'] {
+    background: var(--accent);
+    color: #f6f2ec;
+  }
+  .btn[aria-pressed='true'] {
+    border-color: var(--ink);
+  }
+</style>

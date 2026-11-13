@@ -1,0 +1,264 @@
+---
+import ProductMedia from './ProductMedia.astro';
+import { SITE } from '../config/site';
+import { catalogNo, itemPath, type Item } from '../lib/items';
+import { peso, pad, shortDate } from '../lib/format';
+
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+
+const count = (s: Item['data']['status']) => items.filter((i) => i.data.status === s).length;
+const available = count('available');
+const sold = count('sold');
+const latest = [...items].sort((a, b) => b.data.listed.getTime() - a.data.listed.getTime())[0];
+
+// Three pieces for the collage: featured first, then the newest available.
+const picks = [
+  ...items.filter((i) => i.data.featured && i.data.status !== 'sold'),
+  ...items.filter((i) => !i.data.featured && i.data.status === 'available'),
+].slice(0, 3);
+const speeds = ['-0.04', '0.04', '-0.08'];
+---
+
+<section class="hero">
+  <div class="wrap">
+    <div class="topline label muted">
+      <span>(Pre-loved archive)</span>
+      <span class="hide-sm">{SITE.location}</span>
+      {latest && <span>Last drop · {shortDate(latest.data.listed)}</span>}
+    </div>
+
+    <h1 class="rise">
+      <span class="ln" style="--i:0"><span>Not everything</span></span>
+      <span class="ln indent" style="--i:1"><span>needs to be <em>new.</em></span></span>
+    </h1>
+
+    <div class="body">
+      <div class="copy rv">
+        <p class="lede">
+          A personal archive of clothing, footwear, and everyday essentials, collected with intention and
+          released for someone new.
+        </p>
+        <div class="cta">
+          <a class="btn" href="#archive">Explore the archive <span class="arrow">→</span></a>
+          <a class="link" href="/how-to-buy/">How buying works</a>
+        </div>
+      </div>
+
+      <div class="collage">
+        {
+          picks.map((item, i) => (
+            <a class={`pick p${i}`} href={itemPath(item)} data-parallax={speeds[i]} style={`--i:${i + 2}`} data-cursor-label="View">
+              <div class="rv-img" style={`--i:${i + 3}`}>
+              <ProductMedia
+                item={item}
+                eager
+                badge={false}
+                sizes={i === 0 ? '(max-width: 760px) 70vw, 30vw' : '(max-width: 760px) 50vw, 18vw'}
+                transition={false}
+              />
+              </div>
+              <span class="cap label rv" style={`--i:${i + 5}`}>
+                <span class="muted">№ {catalogNo(item)}</span>
+                <span class="t">{item.data.title}</span>
+                <span class="num">{peso(item.data.price)}</span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+
+    <dl class="stats rv">
+      <div>
+        <dt class="label muted">Available now</dt>
+        <dd class="num" data-count-to={available}>{pad(available)}</dd>
+      </div>
+      <div>
+        <dt class="label muted">In the archive</dt>
+        <dd class="num" data-count-to={items.length}>{pad(items.length)}</dd>
+      </div>
+      <div>
+        <dt class="label muted">Released</dt>
+        <dd class="num" data-count-to={sold}>{pad(sold)}</dd>
+      </div>
+      <div>
+        <dt class="label muted">Every piece</dt>
+        <dd>1<em>/</em>1</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding: 28px 0 0;
+  }
+  .topline {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(28px, 4vw, 56px);
+  }
+  h1 {
+    margin-bottom: clamp(32px, 4vw, 56px);
+  }
+  .indent {
+    padding-left: 12%;
+  }
+  .body {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .copy {
+    grid-column: 1 / span 4;
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+  }
+  .lede {
+    font: 400 clamp(22px, 1.9vw, 28px) / 1.3 var(--display);
+    color: var(--ink-2);
+    max-width: 26ch;
+    margin-bottom: 36px;
+  }
+  .cta {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .collage {
+    grid-column: 6 / -1;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .pick {
+    display: block;
+  }
+  .p1 {
+    margin-top: 22%;
+  }
+  .p2 {
+    margin-top: 60%;
+  }
+  .pick :global(.media) {
+    transition: transform 1s var(--ease);
+  }
+  .pick:hover :global(.media) {
+    transform: translateY(-6px);
+  }
+  .pick:hover :global(.art) {
+    transform: scale(1.06) rotate(-2deg);
+  }
+  .cap {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 10px;
+    margin-top: 12px;
+  }
+  .cap .t {
+    grid-column: 1 / -1;
+    font: 400 20px/1.1 var(--display);
+    letter-spacing: 0;
+    text-transform: none;
+    order: -1;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin: clamp(56px, 7vw, 112px) 0 0;
+    border-top: 1px solid var(--line);
+  }
+  .stats div {
+    padding: 22px 20px 26px 0;
+    border-right: 1px solid var(--line);
+  }
+  .stats div + div {
+    padding-left: 20px;
+  }
+  .stats div:last-child {
+    border-right: 0;
+  }
+  dd {
+    margin: 10px 0 0;
+    font: 400 clamp(44px, 5.5vw, 84px) / 0.9 var(--display);
+  }
+  dd em {
+    color: var(--accent);
+  }
+
+  @media (max-width: 1100px) {
+    .copy {
+      grid-column: 1 / span 5;
+    }
+    .collage {
+      grid-column: 6 / -1;
+    }
+  }
+  @media (max-width: 860px) {
+    .body {
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+    .copy,
+    .collage {
+      grid-column: 1;
+      position: static;
+    }
+    .indent {
+      padding-left: 0;
+    }
+  }
+  @media (max-width: 760px) {
+    .hide-sm {
+      display: none;
+    }
+    /* Swipeable row of featured pieces */
+    .collage {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      margin: 0 calc(var(--gutter) * -1);
+      padding: 0 var(--gutter);
+    }
+    .collage::-webkit-scrollbar {
+      display: none;
+    }
+    .pick {
+      flex: 0 0 64%;
+      scroll-snap-align: start;
+      scroll-margin-left: var(--gutter);
+    }
+    .p1,
+    .p2 {
+      margin-top: 0;
+    }
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .stats div,
+    .stats div + div {
+      padding: 18px 16px 22px 0;
+      border-right: 0;
+    }
+    .stats div:nth-child(even) {
+      padding-left: 16px;
+      border-left: 1px solid var(--line);
+    }
+    .stats div:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>

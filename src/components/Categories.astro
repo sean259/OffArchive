@@ -1,0 +1,152 @@
+---
+import { CATEGORIES } from '../config/site';
+import type { Item } from '../lib/items';
+import Illustration from './Illustration.astro';
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+const availableIn = (name: string) =>
+  items.filter((i) => i.data.category === name && i.data.status === 'available').length;
+---
+
+<section id="categories" class="band">
+  <div class="wrap">
+    <SectionHead index="03" label="Departments">
+      Browse by <em>category.</em>
+      <span slot="aside" class="label muted">Hover to preview</span>
+    </SectionHead>
+
+    <ul class="cats">
+      {
+        CATEGORIES.map((c, i) => (
+          <li class="rv" style={`--i:${i}`}>
+            <a class="cat" href={`/?c=${c.slug}#archive`} data-peek>
+              <span class="label muted idx">0{i + 1}</span>
+              <span class="mini frame" aria-hidden="true">
+                <Illustration kind={c.art} />
+              </span>
+              <span class="name">{c.name}</span>
+              <span class="label muted blurb">{c.blurb}</span>
+              <span class="label avail">
+                <span class="dot" /> {availableIn(c.name)} available
+              </span>
+              <span class="go" aria-hidden="true">
+                →
+              </span>
+              <span data-peek-src hidden>
+                <span class="frame peekframe">
+                  <Illustration kind={c.art} />
+                </span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .band {
+    background: var(--paper-2);
+  }
+  .band :global(.shead) {
+    border-color: var(--line-strong);
+  }
+  .cats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+  .cat {
+    display: grid;
+    grid-template-columns: 80px 1fr auto auto 64px;
+    align-items: center;
+    gap: 24px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line-strong);
+    position: relative;
+  }
+  .name {
+    font: 400 clamp(48px, 8vw, 128px) / 0.95 var(--display);
+    letter-spacing: -0.02em;
+    transition:
+      transform 0.7s var(--ease),
+      color 0.4s;
+  }
+  .cat:hover .name {
+    transform: translateX(24px);
+    font-style: italic;
+    color: var(--accent);
+  }
+  .avail {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .go {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    font-size: 20px;
+    transition:
+      background 0.4s,
+      color 0.4s,
+      transform 0.6s var(--ease);
+  }
+  .cat:hover .go {
+    background: var(--ink);
+    color: var(--on-ink);
+    transform: rotate(-45deg);
+  }
+  .mini {
+    display: none;
+  }
+  .peekframe {
+    display: block;
+    aspect-ratio: 4 / 5;
+    background: var(--paper);
+  }
+
+  @media (max-width: 860px) {
+    .cat {
+      grid-template-columns: 84px 1fr auto;
+      grid-template-rows: auto auto;
+      gap: 6px 16px;
+      padding: 16px 0;
+    }
+    .idx,
+    .blurb {
+      display: none;
+    }
+    .mini {
+      display: block;
+      grid-row: 1 / span 2;
+      aspect-ratio: 4 / 5;
+      background: var(--paper);
+    }
+    .name {
+      font-size: clamp(36px, 10vw, 56px);
+    }
+    .avail {
+      grid-column: 2;
+      grid-row: 2;
+    }
+    .go {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      width: 44px;
+      height: 44px;
+    }
+    .cat:hover .name {
+      transform: none;
+    }
+  }
+</style>

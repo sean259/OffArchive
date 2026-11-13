@@ -1,0 +1,66 @@
+---
+interface Props {
+  phrases: string[];
+}
+const { phrases } = Astro.props;
+// Repeated twice so translateX(-50%) loops seamlessly.
+const run = [...phrases, ...phrases, ...phrases];
+---
+
+<div class="tape" aria-hidden="true">
+  <div class="track">
+    {
+      [0, 1].map(() => (
+        <span class="half">
+          {run.map((p, i) => (
+            <span class:list={['item', { it: i % 2 === 1 }]}>
+              {p}
+              <span class="star">✳</span>
+            </span>
+          ))}
+        </span>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .tape {
+    margin-top: clamp(56px, 7vw, 96px);
+    border-block: 1px solid var(--line);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 18px 0;
+  }
+  .track {
+    display: inline-flex;
+    animation: run 60s linear infinite;
+  }
+  .tape:hover .track {
+    animation-play-state: paused;
+  }
+  .half {
+    display: inline-flex;
+  }
+  .item {
+    display: inline-flex;
+    align-items: center;
+    gap: 36px;
+    padding-right: 36px;
+    font: 400 clamp(28px, 3.4vw, 48px) / 1 var(--display);
+  }
+  .it {
+    font-style: italic;
+    color: var(--muted);
+  }
+  .star {
+    font-size: 0.5em;
+    color: var(--accent);
+    font-style: normal;
+  }
+  @keyframes run {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+</style>

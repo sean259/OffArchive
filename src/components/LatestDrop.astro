@@ -1,0 +1,222 @@
+---
+/**
+ * "Just dropped" rail: the newest pieces in a drag-to-scroll strip.
+ * Which pieces count as the drop is set by SITE.dropWindowDays (see lib/items.ts → latestDrop).
+ */
+import ProductCard from './ProductCard.astro';
+import SectionHead from './SectionHead.astro';
+import { SITE } from '../config/site';
+import { latestDrop, type Item } from '../lib/items';
+import { shortDate, pad } from '../lib/format';
+
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+const drop = latestDrop(items, SITE.dropWindowDays);
+---
+
+{
+  drop.items.length > 0 && (
+    <section class="drop" id="drop">
+      <div class="wrap">
+        <SectionHead index="01" label="Latest drop">
+          Just <em>dropped.</em>
+          <span slot="aside" class="label muted aside">
+            {pad(drop.items.length)} new pieces{drop.date && <> · {shortDate(drop.date)}</>}
+          </span>
+        </SectionHead>
+      </div>
+
+      <div class="rail" data-rail data-cursor-label="Drag" tabindex="0" aria-label="Latest pieces, scroll sideways">
+        {drop.items.map((item, i) => (
+          <div class="slot rv-img" style={`--i:${Math.min(i, 4)}`}>
+            <ProductCard item={item} transition={false} sizes="(max-width: 760px) 72vw, 26vw" />
+          </div>
+        ))}
+        <a class="slot end" href="#archive">
+          <span class="label muted">Everything else</span>
+          <span class="serif">
+            The full <em>archive</em>
+          </span>
+          <span class="go" aria-hidden="true">
+            →
+          </span>
+        </a>
+      </div>
+
+      <div class="wrap">
+        <div class="bar" aria-hidden="true">
+          <span data-rail-progress />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rail]').forEach((rail) => {
+    const progress = rail.parentElement?.querySelector<HTMLElement>('[data-rail-progress]');
+    const update = () => {
+      const max = rail.scrollWidth - rail.clientWidth;
+      const p = max > 0 ? rail.scrollLeft / max : 1;
+      if (progress) progress.style.transform = `scaleX(${Math.max(0.08, p)})`;
+    };
+    rail.addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update);
+    update();
+
+    // Mouse drag-to-scroll with momentum (touch already scrolls natively).
+    let down = false;
+    let moved = false;
+    let startX = 0;
+    let startLeft = 0;
+    let lastX = 0;
+    let velocity = 0;
+    let frame = 0;
+
+    rail.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      down = true;
+      moved = false;
+      startX = lastX = e.clientX;
+      startLeft = rail.scrollLeft;
+      velocity = 0;
+      cancelAnimationFrame(frame);
+    });
+    addEventListener('pointermove', (e) => {
+      if (!down) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 5 && !moved) {
+        moved = true;
+        rail.classList.add('dragging');
+      }
+      if (moved) {
+        velocity = e.clientX - lastX;
+        lastX = e.clientX;
+        rail.scrollLeft = startLeft - dx;
+      }
+    });
+    addEventListener('pointerup', () => {
+      if (!down) return;
+      down = false;
+      rail.classList.remove('dragging');
+      const glide = () => {
+        velocity *= 0.94;
+        rail.scrollLeft -= velocity;
+        if (Math.abs(velocity) > 0.4) frame = requestAnimationFrame(glide);
+      };
+      if (moved) frame = requestAnimationFrame(glide);
+    });
+    // Don't open a card if the user was dragging.
+    rail.addEventListener(
+      'click',
+      (e) => {
+        if (moved) {
+          e.preventDefault();
+          e.stopPropagation();
+          moved = false;
+        }
+      },
+      true,
+    );
+    rail.addEventListener('dragstart', (e) => e.preventDefault());
+  });
+</script>
+
+<style>
+  .drop {
+    padding-bottom: clamp(64px, 8vw, 120px);
+  }
+  .rail {
+    --edge: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 0 var(--edge) 8px;
+    scroll-padding-inline: var(--edge);
+    scrollbar-width: none;
+    cursor: grab;
+    user-select: none;
+    outline-offset: -2px;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail.dragging {
+    cursor: grabbing;
+  }
+  .rail.dragging :global(a) {
+    pointer-events: none;
+  }
+  .slot {
+    flex: 0 0 clamp(250px, 24vw, 360px);
+  }
+  .end {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    aspect-ratio: 4 / 5;
+    padding: 24px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    transition:
+      background 0.5s var(--ease),
+      color 0.5s var(--ease);
+  }
+  .end .serif {
+    font-size: clamp(40px, 4vw, 60px);
+    line-height: 0.95;
+  }
+  .end em {
+    color: var(--accent);
+  }
+  .end:hover {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+  .end:hover .label {
+    color: inherit;
+    opacity: 0.6;
+  }
+  .go {
+    align-self: flex-end;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    font-size: 20px;
+    transition: transform 0.6s var(--ease);
+  }
+  .end:hover .go {
+    transform: rotate(-45deg);
+  }
+  .bar {
+    position: relative;
+    height: 1px;
+    margin-top: 36px;
+    background: var(--line);
+  }
+  .bar span {
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform-origin: left;
+    transform: scaleX(0.08);
+    transition: transform 0.2s linear;
+  }
+  @media (max-width: 760px) {
+    .slot {
+      flex-basis: 72vw;
+    }
+    .rail {
+      gap: 12px;
+      scroll-snap-type: x mandatory;
+    }
+    .slot {
+      scroll-snap-align: start;
+    }
+  }
+</style>

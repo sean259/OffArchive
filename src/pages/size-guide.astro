@@ -1,0 +1,313 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHead from '../components/SectionHead.astro';
+import MessengerButton from '../components/MessengerButton.astro';
+import { ART } from '../lib/art';
+
+// Men's sneaker sizes. Approximate: always compare with the listed insole length when given.
+const shoes = [
+  ['7', '6', '40', '25'],
+  ['7.5', '6.5', '40.5', '25.5'],
+  ['8', '7', '41', '26'],
+  ['8.5', '7.5', '42', '26.5'],
+  ['9', '8', '42.5', '27'],
+  ['9.5', '8.5', '43', '27.5'],
+  ['10', '9', '44', '28'],
+  ['10.5', '9.5', '44.5', '28.5'],
+  ['11', '10', '45', '29'],
+  ['12', '11', '46', '30'],
+];
+
+const top = [
+  { k: 'A', t: 'Pit to pit', d: 'Lay flat. Measure straight across the chest, 1" below the armholes.' },
+  { k: 'B', t: 'Length', d: 'From the highest point of the shoulder (beside the collar) down to the hem.' },
+  { k: 'C', t: 'Shoulder', d: 'Seam to seam across the back of the shoulders.' },
+  { k: 'D', t: 'Sleeve', d: 'From the shoulder seam to the end of the cuff.' },
+];
+const bottom = [
+  { k: 'A', t: 'Waist', d: 'Straight across the top of the waistband, then double it.' },
+  { k: 'B', t: 'Rise', d: 'From the crotch seam up to the top of the waistband (front).' },
+  { k: 'C', t: 'Inseam', d: 'From the crotch seam down the inner leg to the hem.' },
+  { k: 'D', t: 'Leg opening', d: 'Straight across the hem of one leg.' },
+];
+---
+
+<BaseLayout title="Size guide" description="How we measure every piece at OFFARCHIVE., plus a sneaker size conversion chart.">
+  <section class="intro">
+    <div class="wrap">
+      <p class="label muted kicker">(Size guide)</p>
+      <h1 class="rise">
+        <span class="ln" style="--i:0"><span>Measure</span></span>
+        <span class="ln" style="--i:1"><span>once, <em>buy right.</em></span></span>
+      </h1>
+      <p class="lede rv">
+        Tag sizes vary between brands and eras, so every clothing listing includes flat measurements. The easiest way to check fit:
+        lay a piece you already love flat, measure it the same way, and compare.
+      </p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <SectionHead index="A" label="Tops">How we measure <em>tops.</em></SectionHead>
+      <div class="diagram">
+        <figure class="frame fig rv-img">
+          <svg viewBox="-12 0 124 125" aria-labelledby="top-title">
+            <title id="top-title">Tee diagram with measurement lines A to D</title>
+            <path class="garment" d={ART.tee}></path>
+            <!-- A: pit to pit -->
+            <path class="dim" d="M28 60 H72 M28 57 V63 M72 57 V63"></path>
+            <!-- B: length -->
+            <path class="dim" d="M98 28 V100 M95 28 H101 M95 100 H101"></path>
+            <path class="guide" d="M65 28 H95 M72 100 H95"></path>
+            <!-- C: shoulder -->
+            <path class="dim" d="M22 18 H78 M22 15 V21 M78 15 V21"></path>
+            <path class="guide" d="M22 21 V34 M78 21 V34"></path>
+            <!-- D: sleeve -->
+            <path class="dim" d="M14 33 L4 53 M11.3 31.7 L16.7 34.3 M1.3 51.7 L6.7 54.3"></path>
+            <g class="tag"><circle cx="50" cy="66.5" r="3.6"></circle><text x="50" y="67.8">A</text></g>
+            <g class="tag"><circle cx="104" cy="64" r="3.6"></circle><text x="104" y="65.3">B</text></g>
+            <g class="tag"><circle cx="50" cy="11.5" r="3.6"></circle><text x="50" y="12.8">C</text></g>
+            <g class="tag"><circle cx="4" cy="40" r="3.6"></circle><text x="4" y="41.3">D</text></g>
+          </svg>
+        </figure>
+        <dl class="legend">
+          {
+            top.map((m, i) => (
+              <div class="rv" style={`--i:${i}`}>
+                <dt>
+                  <span class="k">{m.k}</span>
+                  {m.t}
+                </dt>
+                <dd class="muted">{m.d}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <SectionHead index="B" label="Bottoms">How we measure <em>bottoms.</em></SectionHead>
+      <div class="diagram">
+        <figure class="frame fig rv-img">
+          <svg viewBox="0 0 100 125" aria-labelledby="pants-title">
+            <title id="pants-title">Trousers diagram with measurement lines A to D</title>
+            <path class="garment" d={ART.pants}></path>
+            <!-- A: waist -->
+            <path class="dim" d="M30 12 H70 M30 9 V15 M70 9 V15"></path>
+            <!-- B: rise -->
+            <path class="dim" d="M86 20 V54 M83 20 H89 M83 54 H89"></path>
+            <path class="guide" d="M70 20 H83 M50 54 H83"></path>
+            <!-- C: inseam -->
+            <path class="dim" d="M50.5 58 L54.5 104"></path>
+            <!-- D: leg opening -->
+            <path class="dim" d="M55 114 H76 M55 111 V117 M76 111 V117"></path>
+            <g class="tag"><circle cx="50" cy="5.5" r="3.6"></circle><text x="50" y="6.8">A</text></g>
+            <g class="tag"><circle cx="93" cy="37" r="3.6"></circle><text x="93" y="38.3">B</text></g>
+            <g class="tag"><circle cx="58" cy="80" r="3.6"></circle><text x="58" y="81.3">C</text></g>
+            <g class="tag"><circle cx="65.5" cy="120.5" r="3.6"></circle><text x="65.5" y="121.8">D</text></g>
+          </svg>
+        </figure>
+        <dl class="legend">
+          {
+            bottom.map((m, i) => (
+              <div class="rv" style={`--i:${i}`}>
+                <dt>
+                  <span class="k">{m.k}</span>
+                  {m.t}
+                </dt>
+                <dd class="muted">{m.d}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="shoes">
+    <div class="wrap">
+      <SectionHead index="C" label="Footwear">
+        Sneaker <em>sizes.</em>
+        <span slot="aside" class="label muted">Men's · approximate</span>
+      </SectionHead>
+      <div class="table-wrap rv" data-lenis-prevent>
+        <table>
+          <thead>
+            <tr class="label muted">
+              <th scope="col">US</th><th scope="col">UK</th><th scope="col">EU</th><th scope="col">Foot length (cm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              shoes.map((r) => (
+                <tr>
+                  {r.map((c) => (
+                    <td class="num">{c}</td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="note muted rv">Sizing differs by brand and model. Where we can, listings include the insole length, which is the most reliable number to compare.</p>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap">
+      <h2>Need a <em>measurement?</em></h2>
+      <p class="muted">Ask for any measurement on any piece. We’ll lay it flat and send a photo with the tape.</p>
+      <MessengerButton label="Ask for measurements" magnetic />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    padding-top: clamp(40px, 6vw, 80px);
+  }
+  .kicker {
+    margin-bottom: 24px;
+  }
+  .lede {
+    font: 400 clamp(22px, 2.2vw, 30px) / 1.28 var(--display);
+    max-width: 36ch;
+    margin: 40px 0 0 25%;
+    color: var(--ink-2);
+  }
+  .band {
+    background: var(--paper-2);
+  }
+  .band .fig {
+    background: var(--paper);
+  }
+  .diagram {
+    display: grid;
+    grid-template-columns: 5fr 1fr 6fr;
+    align-items: center;
+  }
+  .fig {
+    grid-column: 1;
+    margin: 0;
+    aspect-ratio: 4 / 5;
+    display: grid;
+    place-items: center;
+    padding: 8%;
+  }
+  .fig svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .garment {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 0.8;
+    stroke-linejoin: round;
+  }
+  .dim {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 0.7;
+  }
+  .guide {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 0.35;
+    stroke-dasharray: 1.2 1.2;
+    opacity: 0.7;
+  }
+  .tag circle {
+    fill: var(--accent);
+  }
+  .tag text {
+    fill: #f6f2ec;
+    font: 500 4.2px var(--mono);
+    text-anchor: middle;
+  }
+  .legend {
+    grid-column: 3;
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+  .legend div {
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  dt {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font: 400 clamp(28px, 2.6vw, 38px) / 1 var(--display);
+    margin-bottom: 8px;
+  }
+  .k {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #f6f2ec;
+    font: 500 12px var(--mono);
+  }
+  dd {
+    margin: 0 0 0 42px;
+    max-width: 46ch;
+  }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th {
+    text-align: left;
+    font-weight: 400;
+    padding: 12px 16px 12px 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  td {
+    padding: 14px 16px 14px 0;
+    border-bottom: 1px solid var(--line);
+    font: 400 26px var(--display);
+  }
+  tbody tr {
+    transition: background 0.3s;
+  }
+  tbody tr:hover {
+    background: var(--paper-3);
+  }
+  .note {
+    margin-top: 20px;
+    max-width: 60ch;
+  }
+  .cta {
+    text-align: center;
+  }
+  .cta h2 {
+    margin-bottom: 16px;
+  }
+  .cta p {
+    margin: 0 auto 32px;
+    max-width: 44ch;
+  }
+  @media (max-width: 860px) {
+    .lede {
+      margin-left: 0;
+    }
+    .diagram {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .legend {
+      grid-column: 1;
+    }
+  }
+</style>

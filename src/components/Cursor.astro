@@ -1,0 +1,65 @@
+<div class="cursor" data-cursor aria-hidden="true">
+  <span class="cursor-text label" data-cursor-text></span>
+</div>
+
+<style>
+  .cursor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 95;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .cursor.on {
+    opacity: 1;
+  }
+  .cursor::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    mix-blend-mode: difference;
+    transition:
+      transform 0.45s var(--ease),
+      background 0.3s,
+      opacity 0.3s;
+  }
+  .cursor.hot::before {
+    transform: scale(3.2);
+  }
+  .cursor.down::before {
+    transform: scale(0.6);
+  }
+  .cursor.big::before {
+    transform: scale(9);
+    background: var(--accent);
+    mix-blend-mode: normal;
+  }
+  .cursor-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+    color: #f6f2ec;
+    white-space: nowrap;
+    opacity: 0;
+    transition:
+      opacity 0.3s,
+      transform 0.45s var(--ease);
+  }
+  .cursor.big .cursor-text {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  @media (hover: none), (pointer: coarse) {
+    .cursor {
+      display: none;
+    }
+  }
+</style>

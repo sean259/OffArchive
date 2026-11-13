@@ -1,0 +1,139 @@
+---
+/** Sold pieces: proof of taste and trust, kept out of the shop grid. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { getItems, soldItems, liveItems } from '../lib/items';
+import { pad } from '../lib/format';
+
+const items = await getItems();
+const sold = soldItems(items);
+const live = liveItems(items).length;
+---
+
+<BaseLayout title="Released" description="Pieces from the OFFARCHIVE. archive that have already found a new home.">
+  <section class="head">
+    <div class="wrap">
+      <div class="top label muted">
+        <span>(Released)</span>
+        <span><span data-count-to={sold.length}>{pad(sold.length)}</span> {sold.length === 1 ? 'piece' : 'pieces'} passed on</span>
+      </div>
+      <h1 class="rise">
+        <span class="ln" style="--i:0"><span>Found a</span></span>
+        <span class="ln indent" style="--i:1"><span>new <em>home.</em></span></span>
+      </h1>
+      <p class="lede rv">
+        Every piece here was one of one, and each found its next owner. This is a record of what's passed through the archive. Missed
+        something? Ask us. Similar pieces often turn up in the next drop.
+      </p>
+    </div>
+  </section>
+
+  <section class="list">
+    <div class="wrap">
+      {
+        sold.length > 0 ? (
+          <div class="grid">
+            {sold.map((item, i) => (
+              <div class="rv" style={`--i:${i % 4}`}>
+                <ProductCard item={item} dimSold={false} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="empty serif">
+            Nothing released <em>yet.</em>
+          </p>
+        )
+      }
+
+      <a class="back" href="/#archive">
+        <span class="label muted">Still available</span>
+        <span class="serif">
+          {live} pieces in the archive <em>→</em>
+        </span>
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .head {
+    padding: 28px 0 40px;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(28px, 4vw, 56px);
+  }
+  .indent {
+    padding-left: 12%;
+  }
+  .lede {
+    font: 400 clamp(22px, 2vw, 28px) / 1.3 var(--display);
+    max-width: 40ch;
+    margin: 40px 0 0 auto;
+    color: var(--ink-2);
+  }
+  .list {
+    padding-top: 40px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 56px 20px;
+  }
+  .grid :global(.media)::after {
+    content: 'Released';
+    position: absolute;
+    right: -38px;
+    top: 22px;
+    z-index: 3;
+    width: 160px;
+    padding: 6px 0;
+    background: var(--accent);
+    color: #f6f2ec;
+    text-align: center;
+    font: 400 10px var(--mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transform: rotate(45deg);
+  }
+  .grid :global(.card-save) {
+    display: none;
+  }
+  .empty {
+    font-size: 44px;
+    padding: 40px 0;
+  }
+  .back {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    margin-top: 96px;
+    padding: 28px 0;
+    border-block: 1px solid var(--line);
+  }
+  .back .serif {
+    font-size: clamp(28px, 3vw, 44px);
+  }
+  .back em {
+    color: var(--accent);
+  }
+  @media (max-width: 1100px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 760px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px 12px;
+    }
+    .indent {
+      padding-left: 0;
+    }
+  }
+</style>

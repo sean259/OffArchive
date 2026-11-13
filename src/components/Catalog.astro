@@ -1,0 +1,40 @@
+---
+/**
+ * Embeds a compact JSON index of every item, read by the Saved drawer and Search
+ * (src/lib/catalog.ts). Rendered once per page by BaseLayout.
+ */
+import { getImage } from 'astro:assets';
+import { getItems, catalogNo, itemPath } from '../lib/items';
+import { peso } from '../lib/format';
+import { ART } from '../lib/art';
+
+const items = await getItems();
+const entries = await Promise.all(
+  items.map(async (item, order) => {
+    const cover = item.data.images[0];
+    const thumb = cover ? (await getImage({ src: cover, width: 160, format: 'webp' })).src : undefined;
+    return [
+      item.id,
+      {
+        id: item.id,
+        order,
+        no: catalogNo(item),
+        title: item.data.title,
+        brand: item.data.brand ?? '',
+        category: item.data.category,
+        condition: item.data.condition,
+        price: item.data.price,
+        priceLabel: peso(item.data.price),
+        size: item.data.size,
+        status: item.data.status,
+        url: itemPath(item),
+        thumb,
+        art: ART[item.data.art],
+      },
+    ] as const;
+  }),
+);
+const json = JSON.stringify(Object.fromEntries(entries)).replace(/</g, '\\u003c');
+---
+
+<script type="application/json" id="catalog" set:html={json} />
