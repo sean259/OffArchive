@@ -20,6 +20,11 @@
   --on-accent: #f6f2ec; /* text on --accent / --ok / --hold fills */
   --field-line: rgba(20, 20, 18, 0.5); /* form borders: ≥3:1 so fields are visible */
   --scrim: rgba(14, 14, 12, 0.5);
+  /* Status dots: brighter than the text colours (they're 6px graphics, need ≥3:1, not 4.5:1). */
+  --st-available: #3f8a3a;
+  --st-reserved: #a86f12;
+  --st-sold: #857f76;
+  --st-rejected: #b4472b;
   --grain-opacity: 0.07;
   /* Photo frames: light backgrounds in photos melt into the paper tone. */
   --photo-blend: multiply;
@@ -57,6 +62,10 @@
     --on-accent: #100f0d;
     --field-line: rgba(236, 231, 222, 0.42);
     --grain-opacity: 0.05;
+    --st-available: #6cc35e;
+    --st-reserved: #e0a83a;
+    --st-sold: #7a756c;
+    --st-rejected: #e0795a;
     --photo-blend: normal;
   --pf-bg: var(--paper-2);
     --photo-filter: brightness(0.9) saturate(0.92);
@@ -81,6 +90,10 @@
   --on-accent: #100f0d;
   --field-line: rgba(236, 231, 222, 0.42);
   --grain-opacity: 0.05;
+  --st-available: #6cc35e;
+  --st-reserved: #e0a83a;
+  --st-sold: #7a756c;
+  --st-rejected: #e0795a;
   --photo-blend: normal;
   --pf-bg: var(--paper-2);
   --photo-filter: brightness(0.9) saturate(0.92);

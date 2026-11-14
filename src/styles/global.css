@@ -300,27 +300,37 @@ section {
   border-radius: 1px;
 }
 
-/* Status dot */
+/* Status dot: available (default) glows softly, reserved is solid amber, pending is an
+   amber ring (so it can't be mistaken for reserved), sold/hidden grey, rejected rust. */
 .dot {
   display: inline-block;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--ok);
+  background: var(--st-available);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-available) 18%, transparent);
   flex: none;
 }
+.dot.reserved,
+.dot.pending,
+.dot.sold,
+.dot.hidden,
+.dot.rejected {
+  box-shadow: none;
+}
 .dot.reserved {
-  background: var(--hold);
+  background: var(--st-reserved);
+}
+.dot.pending {
+  background: transparent;
+  border: 1.5px solid var(--st-reserved);
 }
 .dot.sold,
 .dot.hidden {
-  background: var(--faint);
-}
-.dot.pending {
-  background: var(--hold);
+  background: var(--st-sold);
 }
 .dot.rejected {
-  background: var(--accent);
+  background: var(--st-rejected);
 }
 
 /* ── Motion ───────────────────────────────── */
