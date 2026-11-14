@@ -286,7 +286,9 @@ export function fitData(item: Item) {
   if (!garment) return null;
   const m = item.data.measurements;
   const pick = garment === 'top' ? { pitToPit: m.pitToPit, length: m.length } : { waist: m.waist, inseam: m.inseam };
-  return { garment, size: item.data.size, m: Object.fromEntries(Object.entries(pick).filter(([, v]) => v)) };
+  // Sleeve length for the size mannequin: tees are short-sleeved, overshirts and jackets long.
+  const style: 'short' | 'long' | undefined = garment === 'top' ? (item.data.art === 'tee' ? 'short' : 'long') : undefined;
+  return { garment, size: item.data.size, style, m: Object.fromEntries(Object.entries(pick).filter(([, v]) => v)) };
 }
 
 /** Messenger link for a seller (falls back to the shop's page). */

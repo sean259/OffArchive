@@ -21,6 +21,8 @@ export interface FitItem {
   garment: Garment;
   size: string;
   m?: Partial<Record<'pitToPit' | 'length' | 'waist' | 'inseam', string>>;
+  /** Tops only: sleeve length, for the size mannequin drawing. */
+  style?: 'short' | 'long';
 }
 
 export const LIMITS = { heightCm: [130, 220], weightKg: [35, 180] } as const;

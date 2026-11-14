@@ -205,6 +205,93 @@ const { item, id = 'ff' } = Astro.props;
     border-radius: 4px;
     background: var(--paper-2);
   }
+  /* Size mannequin */
+  .result :global(.mq-wrap) {
+    display: grid;
+    grid-template-columns: minmax(110px, 38%) 1fr;
+    gap: 18px;
+    align-items: center;
+    margin: 14px 0 0;
+    padding: 14px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  .result :global(.mq) {
+    display: block;
+    width: 100%;
+    max-height: 320px;
+    overflow: visible;
+  }
+  .result :global(.mq-body) {
+    fill: var(--paper-3);
+    stroke: var(--line-strong);
+    stroke-width: 0.25;
+  }
+  .result :global(.mq-piece) {
+    fill: color-mix(in srgb, var(--accent) 24%, transparent);
+    stroke: var(--accent);
+    stroke-width: 0.4;
+    stroke-linejoin: round;
+  }
+  .result :global(.mq-piece.est) {
+    stroke-dasharray: 1 0.7;
+  }
+  .result :global(.mq-ruler),
+  .result :global(.mq-hem),
+  .result :global(.mq-floor) {
+    stroke: var(--muted);
+    stroke-width: 0.2;
+    fill: var(--muted);
+  }
+  .result :global(.mq-hem line) {
+    stroke-dasharray: 0.8 0.8;
+  }
+  .result :global(.mq text) {
+    stroke: none;
+    font-family: var(--mono);
+  }
+  .result :global(.mq-wrap ul) {
+    margin: 8px 0 12px;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+  }
+  .result :global(.mq-key) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+  .result :global(.mq-key span) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .result :global(.mq-key i) {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+  .result :global(.k-you) {
+    background: var(--paper-3);
+    border: 1px solid var(--line-strong);
+  }
+  .result :global(.k-piece) {
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+    border: 1.5px solid var(--accent);
+  }
+  .result :global(.k-piece.est) {
+    border-style: dashed;
+  }
+  @media (max-width: 420px) {
+    .result :global(.mq-wrap) {
+      grid-template-columns: 1fr;
+    }
+    .result :global(.mq) {
+      max-height: 280px;
+      margin: 0 auto;
+    }
+  }
   .result :global(.verdict .t) {
     font: 400 24px/1.1 var(--display);
   }

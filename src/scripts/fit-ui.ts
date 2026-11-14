@@ -17,6 +17,7 @@ import {
   type Profile,
 } from '../lib/fit';
 import { getProfile, setProfile } from '../lib/fit-profile';
+import { mannequin } from '../lib/mannequin';
 
 const TONE_MARK: Record<string, string> = { good: '✓', roomy: '+', big: '++', snug: '−', small: '−−', unknown: '?' };
 const TONE_SHORT: Record<string, string> = {
@@ -49,6 +50,23 @@ function markCards(p: Profile | null) {
     } else if (!fits) badge?.remove();
   });
   window.dispatchEvent(new CustomEvent('fit:applied', { detail: { hasProfile: Boolean(p) } }));
+}
+
+/* ── Size mannequin: the visitor's outline with this piece drawn on it to scale ── */
+function mannequinHtml(p: Profile, item: FitItem) {
+  const mq = mannequin(p, item);
+  return `
+    <figure class="mq-wrap">
+      <div class="mq-art">${mq.svg}</div>
+      <figcaption>
+        <span class="label muted">How it sits on you</span>
+        <ul>${mq.notes.map((n) => `<li>${n}</li>`).join('')}</ul>
+        <p class="mq-key label muted">
+          <span><i class="k-you"></i>You, to scale</span>
+          ${mq.drawn ? `<span><i class="k-piece${mq.estimated ? ' est' : ''}"></i>This piece${mq.estimated ? ' (estimated from tag size)' : ''}</span>` : ''}
+        </p>
+      </figcaption>
+    </figure>`;
 }
 
 /* ── Finder widgets ── */
@@ -111,6 +129,7 @@ function initFinder(root: HTMLElement) {
           <span class="mark" aria-hidden="true">${TONE_MARK[r.tone]}</span>
           <div><div class="t">${r.headline}</div><p>${r.detail}</p></div>
         </div>
+        ${mannequinHtml(p, item)}
         ${
           r.rows.length
             ? `<table><thead><tr><th>Measure</th><th>This piece</th><th>Your ideal</th><th></th></tr></thead><tbody>${r.rows
