@@ -65,6 +65,9 @@ export function initOrbit(stage: HTMLElement, root: HTMLElement) {
       s.classList.toggle('is-front', front);
       s.tabIndex = front ? 0 : -1;
       s.setAttribute('aria-hidden', String(!front));
+      // Custom cursor: "View" on the piece facing you, "Drag" (from the stage) everywhere else.
+      if (front) s.dataset.cursorLabel = 'View';
+      else delete s.dataset.cursorLabel;
     });
     atEl.textContent = String(index() + 1);
   }
@@ -99,6 +102,10 @@ export function initOrbit(stage: HTMLElement, root: HTMLElement) {
   let lastT = 0;
   let velocity = 0;
   const pxPerSlide = () => Math.max(120, (slides[0]?.offsetWidth ?? 240) * 0.75);
+
+  // Photos are <img>s, which the browser lets you drag out of the page. That native drag
+  // swallows the pointer events, so the ring froze whenever a drag started on a photo.
+  stage.addEventListener('dragstart', (e) => e.preventDefault());
 
   stage.addEventListener('pointerdown', (e) => {
     if ((e.target as Element).closest('.o-btn') || e.button !== 0) return;

@@ -86,6 +86,7 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
       class="orbit"
       data-panel="orbit"
       data-orbit
+      data-cursor-label="Drag"
       hidden
       tabindex="0"
       role="region"
@@ -348,6 +349,11 @@ const countIn = (name: string) => items.filter((i) => i.data.category === name).
     -webkit-backface-visibility: hidden;
     will-change: transform, opacity;
     transition: filter 0.3s;
+  }
+  /* Photos never grab the pointer: dragging anywhere on a card turns the ring. */
+  .o-slide :global(img) {
+    -webkit-user-drag: none;
+    pointer-events: none;
   }
   .o-slide[hidden] {
     display: none;
