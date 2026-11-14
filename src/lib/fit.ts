@@ -74,9 +74,9 @@ export function letterIndex(tag: string): number {
   return map[t] ?? -1;
 }
 
-/** "32" / "W32" / "32x30" → 32 (waist). undefined if not numeric. */
+/** "32" / "W32" / "32x30" / "W32 L30" / "W32/L30" → 32 (waist). undefined if not numeric. */
 export function waistFromTag(tag: string): number | undefined {
-  const m = tag.trim().match(/^W?\s?(\d{2})(?:\s?[x×/]\s?L?\d{2})?$/i);
+  const m = tag.trim().match(/^W?\s?(\d{2})(?:\s*(?:[x×/]\s*L?|L)\s*\d{2})?$/i);
   const n = m ? Number(m[1]) : NaN;
   return n >= 24 && n <= 48 ? n : undefined;
 }

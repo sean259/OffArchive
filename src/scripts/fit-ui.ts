@@ -175,6 +175,7 @@ function initFinder(root: HTMLElement) {
     } else if (t.dataset.pref) {
       pref = t.dataset.pref as Pref;
     } else if (t.hasAttribute('data-ff-clear')) {
+      window.clearTimeout(timer); // a save still waiting from typing would bring the profile back
       form.reset();
       setProfile(null);
       render(null);
