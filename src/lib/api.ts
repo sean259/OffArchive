@@ -8,6 +8,26 @@ export const json = (data: unknown, status = 200) =>
 
 export const fail = (error: string, status = 400) => json({ error }, status);
 
+/**
+ * Where to go once a sign-in succeeds. A brand-new account goes back to the page it came from
+ * (or the homepage rather than the seller dashboard) with ?welcome=1, which opens the
+ * "want to sell something?" dialog. People who signed in to sell skip it and go straight there.
+ */
+export function afterLogin(next: string, user?: { created_at?: string } | null) {
+  const created = user?.created_at ? Date.parse(user.created_at) : NaN;
+  const isNew = Date.now() - created < 60 * 60_000;
+  if (!isNew || next.startsWith('/sell')) return next;
+  const url = new URL(next === '/account/' ? '/' : next, 'http://x');
+  url.searchParams.set('welcome', '1');
+  return url.pathname + url.search + url.hash;
+}
+
+/** Login link that brings you back to the page you were on. */
+export function loginHref(url: URL) {
+  if (/^\/(login|auth|api)(\/|$)/.test(url.pathname)) return '/login/';
+  return `/login/?next=${encodeURIComponent(url.pathname + url.search)}`;
+}
+
 /** Only allow redirects back into this site (blocks open-redirect tricks like //evil.com). */
 export function safeNext(value: unknown, fallback = '/account/') {
   const v = typeof value === 'string' ? value : '';

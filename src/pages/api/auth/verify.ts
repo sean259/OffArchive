@@ -1,6 +1,6 @@
 /** Step 2 of sign-in: check the code from the email and start a session. */
 import type { APIRoute } from 'astro';
-import { safeNext } from '../../../lib/api';
+import { afterLogin, safeNext } from '../../../lib/api';
 
 export const POST: APIRoute = async ({ request, locals, redirect }) => {
   const form = await request.formData();
@@ -11,10 +11,10 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
   if (!locals.supabase) return redirect('/login/?error=setup');
   if (token.length < 6) return redirect(`/login/?${new URLSearchParams({ step: 'code', email, next, error: 'code' })}`);
 
-  const { error } = await locals.supabase.auth.verifyOtp({ email, token, type: 'email' });
+  const { data, error } = await locals.supabase.auth.verifyOtp({ email, token, type: 'email' });
   if (error) {
     console.error('[auth] verifyOtp:', error.message);
     return redirect(`/login/?${new URLSearchParams({ step: 'code', email, next, error: 'code' })}`);
   }
-  return redirect(next);
+  return redirect(afterLogin(next, data.user));
 };

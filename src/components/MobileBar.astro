@@ -3,6 +3,7 @@
  * App-style tab bar on phones: Shop, Search, Saved, Sell, Account, always in thumb reach.
  * Search and Saved reuse the existing dialogs through their data attributes.
  */
+import { loginHref } from '../lib/api';
 const path = Astro.url.pathname;
 const signedIn = Boolean(Astro.locals.user);
 const is = (re: RegExp) => re.test(path);
@@ -30,7 +31,7 @@ const is = (re: RegExp) => re.test(path);
     </span>
     <span>Saved</span>
   </button>
-  <a href={signedIn ? '/account/' : '/login/'} aria-current={is(/^\/(account|admin|login)/) ? 'page' : undefined}>
+  <a href={signedIn ? '/account/' : loginHref(Astro.url)} aria-current={is(/^\/(account|admin|login)/) ? 'page' : undefined}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c1.2-3.6 3.9-5.5 7-5.5s5.8 1.9 7 5.5"></path></svg>
     <span>{signedIn ? 'Account' : 'Log in'}</span>
   </a>

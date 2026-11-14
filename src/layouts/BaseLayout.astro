@@ -17,6 +17,7 @@ import Intro from '../components/Intro.astro';
 import Analytics from '../components/Analytics.astro';
 import QuickView from '../components/QuickView.astro';
 import MobileBar from '../components/MobileBar.astro';
+import WelcomeDialog from '../components/WelcomeDialog.astro';
 import { SITE } from '../config/site';
 import { getItems, isDegraded } from '../lib/items';
 
@@ -121,6 +122,7 @@ const degraded = isDegraded();
     <SearchDialog />
     <QuickView />
     <MobileBar />
+    <WelcomeDialog />
     <Toast />
     <Cursor />
     <div class="peek" data-peek-layer aria-hidden="true"></div>

@@ -1,12 +1,14 @@
 ---
 import { NAV, SITE } from '../config/site';
 import Logo from './Logo.astro';
+import { loginHref } from '../lib/api';
 
 const left = NAV.slice(0, 3);
 const right = NAV.slice(3);
 const isCurrent = (href: string) => (Astro.url.pathname === href ? 'page' : undefined);
 const { user, profile } = Astro.locals;
 const isAdmin = profile?.role === 'admin';
+const login = loginHref(Astro.url);
 const initial = (profile?.display_name ?? user?.email ?? '?').trim().charAt(0).toUpperCase();
 ---
 
@@ -41,7 +43,7 @@ const initial = (profile?.display_name ?? user?.email ?? '?').trim().charAt(0).t
             {initial}
           </a>
         ) : (
-          <a class="login-link" href="/login/" data-login-link>
+          <a class="login-link" href={login} data-login-link>
             Log in
           </a>
         )
@@ -71,7 +73,7 @@ const initial = (profile?.display_name ?? user?.email ?? '?').trim().charAt(0).t
       [
         ...NAV,
         { label: 'Sell an item', href: '/sell/' },
-        user ? { label: isAdmin ? 'Admin' : 'Account', href: isAdmin ? '/admin/' : '/account/' } : { label: 'Log in', href: '/login/' },
+        user ? { label: isAdmin ? 'Admin' : 'Account', href: isAdmin ? '/admin/' : '/account/' } : { label: 'Log in', href: login },
       ].map((l, i) => (
         <a href={l.href} style={`--i:${i}`}>
           <span class="label muted">0{i + 1}</span>

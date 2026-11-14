@@ -1,0 +1,235 @@
+---
+/**
+ * Shown once, right after someone creates an account (the sign-in redirect adds ?welcome=1).
+ * Asks whether they want to sell now, with a short how-to for people who aren't sure yet.
+ * Selling is never required: "Not yet" just closes it.
+ */
+const { user, profile } = Astro.locals;
+const show = Boolean(user) && Astro.url.searchParams.has('welcome');
+const needsContact = !profile?.messenger && !profile?.phone;
+const sellHref = needsContact ? '/account/profile/?next=/sell/' : '/sell/';
+
+const steps = [
+  {
+    t: 'Add a way to reach you',
+    d: 'A Messenger username or phone number on your profile, so buyers can message you. You only do this once.',
+  },
+  { t: 'Take a few photos', d: 'Daylight, plain background. Show the tag, the soles or the spine, and any flaws up close.' },
+  {
+    t: 'Fill in the details',
+    d: 'Size, condition and a fair price. Flat measurements help pieces sell faster. Check Released for what similar pieces went for.',
+  },
+  { t: 'We review it', d: 'Every listing is checked before it goes live, usually within a day. We’ll tell you if anything needs changing.' },
+  { t: 'Buyers message you', d: 'Deal directly on Messenger or text. No fees. Mark it reserved or sold from My listings.' },
+];
+---
+
+{
+  show && (
+    <dialog class="welcome" id="welcome" aria-labelledby="welcome-title" data-welcome>
+      <button type="button" class="x label" data-welcome-close>
+        Close
+      </button>
+
+      <div class="pane" data-welcome-pane="ask">
+        <p class="label muted">(Welcome to the archive)</p>
+        <h2 id="welcome-title" class="serif" tabindex="-1">
+          You’re <em>in.</em>
+        </h2>
+        <p class="lead">Got something you’d like to sell?</p>
+        <p class="muted">
+          No pressure. You can browse and save pieces first, and list whenever you’re ready from <strong>Sell</strong> in the menu.
+        </p>
+        <div class="choices">
+          <a class="btn btn--block" href={sellHref}>
+            Yes, sell an item <span class="arrow">→</span>
+          </a>
+          <button type="button" class="btn btn--ghost btn--block" data-welcome-guide>
+            Show me how it works
+          </button>
+          <button type="button" class="link label later" data-welcome-close>
+            Not yet, just browsing
+          </button>
+        </div>
+      </div>
+
+      <div class="pane" data-welcome-pane="guide" hidden>
+        <p class="label muted">(How selling works)</p>
+        <h2 class="serif" tabindex="-1">
+          Five easy <em>steps.</em>
+        </h2>
+        <ol class="steps">
+          {steps.map((s, i) => (
+            <li>
+              <span class="n label">0{i + 1}</span>
+              <div>
+                <h3>{s.t}</h3>
+                <p class="muted">{s.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div class="choices row">
+          <a class="btn" href={sellHref}>
+            Start my first listing <span class="arrow">→</span>
+          </a>
+          <button type="button" class="link label later" data-welcome-close>
+            Maybe later
+          </button>
+        </div>
+        <button type="button" class="link label back" data-welcome-back>
+          ← Back
+        </button>
+      </div>
+    </dialog>
+  )
+}
+
+<script>
+  const dlg = document.querySelector<HTMLDialogElement>('[data-welcome]');
+  if (dlg) {
+    // Drop ?welcome=1 so a refresh or a shared link doesn't show it again.
+    const url = new URL(location.href);
+    url.searchParams.delete('welcome');
+    history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+
+    const panes = dlg.querySelectorAll<HTMLElement>('[data-welcome-pane]');
+    const show = (name: string) => {
+      panes.forEach((p) => (p.hidden = p.dataset.welcomePane !== name));
+      dlg.querySelector<HTMLElement>(`[data-welcome-pane="${name}"] h2`)?.focus();
+      dlg.scrollTop = 0;
+    };
+
+    dlg.addEventListener('click', (e) => {
+      const t = e.target as Element;
+      if (t === dlg) return dlg.close(); // backdrop
+      if (t.closest('[data-welcome-close]')) dlg.close();
+      else if (t.closest('[data-welcome-guide]')) show('guide');
+      else if (t.closest('[data-welcome-back]')) show('ask');
+    });
+
+    // Let the page settle (intro, fonts) before it appears.
+    setTimeout(() => dlg.showModal(), 450);
+  }
+</script>
+
+<style>
+  .welcome {
+    width: min(520px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    padding: clamp(28px, 5vw, 44px);
+    border: 1px solid var(--line-strong);
+    border-radius: 18px;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 40px 120px -40px rgba(0, 0, 0, 0.55);
+    overflow-y: auto;
+  }
+  .welcome::backdrop {
+    background: var(--scrim);
+    backdrop-filter: blur(6px);
+  }
+  .welcome[open] {
+    animation: wd-in 0.55s var(--ease);
+  }
+  .welcome[open]::backdrop {
+    animation: wd-fade 0.4s ease;
+  }
+  .welcome.closing {
+    animation: wd-out 0.32s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+  @keyframes wd-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+    }
+  }
+  @keyframes wd-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes wd-out {
+    to {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+    }
+  }
+  .x {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    background: none;
+    border: 0;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  h2 {
+    font-size: clamp(40px, 8vw, 56px);
+    line-height: 1;
+    margin: 10px 0 16px;
+    outline: none;
+  }
+  .lead {
+    font-size: 19px;
+    margin-bottom: 6px;
+  }
+  .choices {
+    display: grid;
+    gap: 10px;
+    margin-top: 26px;
+  }
+  .choices.row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px;
+  }
+  .later {
+    justify-self: center;
+    margin-top: 4px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 16px;
+  }
+  .steps li {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .steps .n {
+    color: var(--muted);
+    padding-top: 3px;
+  }
+  .steps h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .steps p {
+    font-size: 14px;
+    margin: 0;
+  }
+  .back {
+    margin-top: 22px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .welcome[open],
+    .welcome[open]::backdrop {
+      animation: none;
+    }
+  }
+</style>
