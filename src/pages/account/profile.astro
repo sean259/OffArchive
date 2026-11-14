@@ -52,9 +52,59 @@ const p = profile;
           <legend class="label">How buyers reach you <span class="muted">· at least one</span></legend>
           <label class="field">
             <span class="label">Messenger username</span>
-            <input class="input" name="messenger" value={p?.messenger ?? ''} placeholder="yourname (from m.me/yourname)" autocapitalize="none" />
-            <span class="help">Open Messenger → your profile → share link. It's the part after m.me/.</span>
+            <input
+              class="input"
+              name="messenger"
+              value={p?.messenger ?? ''}
+              placeholder="e.g. juan.delacruz"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              data-messenger-input
+            />
+            <span class="help">
+              Your Facebook username: the part after <b>facebook.com/</b> in your profile link. Not your display name.
+              <span class="test" data-messenger-test hidden>
+                Check it: <a href="#" target="_blank" rel="noopener" data-messenger-link>m.me/<span></span> ↗</a> should open a chat with you.
+              </span>
+            </span>
           </label>
+
+          <details class="guide">
+            <summary>Where do I find my username?</summary>
+            <div class="guide-body">
+              <div>
+                <p class="label muted">On your phone (Facebook app)</p>
+                <ol>
+                  <li>Open Facebook and tap your <b>profile picture</b> to go to your profile.</li>
+                  <li>Tap <b>⋯</b> next to <b>Edit profile</b>.</li>
+                  <li>
+                    At the bottom, under <b>Your profile link</b>, you’ll see <code>facebook.com/<mark>juan.delacruz</mark></code>. Type the highlighted part.
+                  </li>
+                </ol>
+              </div>
+              <div>
+                <p class="label muted">On a computer</p>
+                <ol>
+                  <li>Go to facebook.com and click your name to open your profile.</li>
+                  <li>Look at the address bar: <code>facebook.com/<mark>juan.delacruz</mark></code>. Type the part after the slash.</li>
+                </ol>
+              </div>
+              <div class="examples">
+                <p class="label muted">Examples</p>
+                <ul>
+                  <li class="yes"><code>juan.delacruz</code> <span>Username</span></li>
+                  <li class="yes"><code>juandc23</code> <span>Username</span></li>
+                  <li class="no"><code>Juan Dela Cruz</code> <span>That’s your name, not your username</span></li>
+                  <li class="no"><code>profile.php?id=1000…</code> <span>No username yet, see below</span></li>
+                </ul>
+              </div>
+              <p class="note">
+                <b>Your link shows <code>profile.php?id=…</code>?</b> You don’t have a username yet. Create one in Facebook under
+                <b>Settings → Accounts Center → Profiles → (your name) → Username</b>, or just add your mobile number below instead.
+              </p>
+            </div>
+          </details>
           <div class="two">
             <label class="field">
               <span class="label">Mobile number</span>
@@ -77,6 +127,30 @@ const p = profile;
     </div>
   </div>
 </BaseLayout>
+
+<script>
+  // Live "Check it" link under the Messenger field, so sellers can confirm the username opens their own chat.
+  const input = document.querySelector<HTMLInputElement>('[data-messenger-input]');
+  const test = document.querySelector<HTMLElement>('[data-messenger-test]');
+  const link = document.querySelector<HTMLAnchorElement>('[data-messenger-link]');
+  if (input && test && link) {
+    const update = () => {
+      // Same clean-up the server does: drop a pasted m.me/ or facebook.com/ prefix.
+      const v = input.value
+        .trim()
+        .replace(/^https?:\/\/(www\.)?(m\.me|facebook\.com|messenger\.com\/t)\//i, '')
+        .replace(/\/$/, '');
+      const ok = /^[A-Za-z0-9.]{3,50}$/.test(v);
+      test.hidden = !ok;
+      if (ok) {
+        link.href = `https://m.me/${v}`;
+        link.querySelector('span')!.textContent = v;
+      }
+    };
+    input.addEventListener('input', update);
+    update();
+  }
+</script>
 
 <style>
   .page {
@@ -118,6 +192,104 @@ const p = profile;
   }
   .contact legend {
     padding: 0 6px;
+  }
+  .test {
+    display: block;
+    margin-top: 4px;
+  }
+  .test a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    word-break: break-all;
+  }
+  /* "Where do I find my username?" */
+  .guide {
+    margin-top: -6px;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 14px;
+  }
+  .guide summary {
+    cursor: pointer;
+    padding: 12px 14px;
+    font-weight: 500;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 44px;
+  }
+  .guide summary::-webkit-details-marker {
+    display: none;
+  }
+  .guide summary::after {
+    content: '+';
+    font: 400 18px/1 var(--mono);
+    color: var(--muted);
+    transition: transform 0.3s var(--ease);
+  }
+  .guide[open] summary::after {
+    transform: rotate(45deg);
+  }
+  .guide-body {
+    display: grid;
+    gap: 18px;
+    padding: 4px 14px 16px;
+  }
+  .guide-body .label {
+    margin-bottom: 6px;
+  }
+  .guide ol,
+  .guide ul {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 6px;
+  }
+  .guide code {
+    font: 400 13px var(--mono);
+    background: var(--paper);
+    padding: 1px 6px;
+    border-radius: 4px;
+    word-break: break-all;
+  }
+  .guide mark {
+    background: color-mix(in srgb, var(--hold) 22%, transparent);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .examples ul {
+    list-style: none;
+    padding: 0;
+  }
+  .examples li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .examples li::before {
+    font-weight: 600;
+    width: 14px;
+  }
+  .examples .yes::before {
+    content: '✓';
+    color: var(--ok);
+  }
+  .examples .no::before {
+    content: '✕';
+    color: var(--accent);
+  }
+  .examples li span {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .note {
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-2);
   }
   .actions {
     display: flex;
