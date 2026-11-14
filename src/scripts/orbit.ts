@@ -103,9 +103,20 @@ export function initOrbit(stage: HTMLElement, root: HTMLElement) {
   let velocity = 0;
   const pxPerSlide = () => Math.max(120, (slides[0]?.offsetWidth ?? 240) * 0.75);
 
-  // Photos are <img>s, which the browser lets you drag out of the page. That native drag
-  // swallows the pointer events, so the ring froze whenever a drag started on a photo.
-  stage.addEventListener('dragstart', (e) => e.preventDefault());
+  // Photos are <img>s and cards are links, both of which the browser lets you drag out of the
+  // page. That native drag swallows the pointer events, so the ring froze on photos. Shut it
+  // off three ways: no draggable elements, no mousedown default (which is what starts a native
+  // drag), and cancel any dragstart that still slips through.
+  stage.querySelectorAll<HTMLElement>('img, a').forEach((el) => {
+    el.draggable = false;
+    el.setAttribute('draggable', 'false');
+  });
+  stage.addEventListener('mousedown', (e) => {
+    if ((e.target as Element).closest('.o-btn')) return;
+    e.preventDefault(); // stops image/link drag and text selection; clicks still fire
+    stage.focus({ preventScroll: true }); // keep arrow keys working
+  });
+  stage.addEventListener('dragstart', (e) => e.preventDefault(), true);
 
   stage.addEventListener('pointerdown', (e) => {
     if ((e.target as Element).closest('.o-btn') || e.button !== 0) return;
