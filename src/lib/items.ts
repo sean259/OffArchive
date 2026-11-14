@@ -27,6 +27,8 @@ export interface Seller {
   messenger: string | null;
   phone: string | null;
   instagram: string | null;
+  /** Public URL of the seller's photo. Only set for verified sellers. */
+  avatar: string | null;
   location: string;
   bio: string | null;
 }
@@ -84,6 +86,7 @@ export const OFFICIAL_SELLER: Seller = {
   messenger: SITE.messenger,
   phone: null,
   instagram: SITE.instagram || null,
+  avatar: null,
   location: SITE.location,
   bio: SITE.description,
 };
@@ -100,6 +103,7 @@ export const toSeller = (p: SellerRow | ProfileRow): Seller => ({
   messenger: p.messenger,
   phone: p.phone,
   instagram: p.instagram,
+  avatar: p.avatar && (p.verified || p.role === 'admin') ? photoUrl(p.avatar) : null,
   location: p.location,
   bio: p.bio,
 });

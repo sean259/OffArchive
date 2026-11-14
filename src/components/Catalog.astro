@@ -43,7 +43,7 @@ const entries = await Promise.all(
         blurb: item.body.length > 180 ? item.body.slice(0, 177).trimEnd() + '…' : item.body,
         listed: d.listed.getTime(),
         art: ART[item.data.art],
-        seller: { username: s.username, name: s.name, official: s.official, messenger: s.messenger ? messengerFor(s) : null, phone: s.phone },
+        seller: { username: s.username, name: s.name, official: s.official, verified: s.verified, messenger: s.messenger ? messengerFor(s) : null, phone: s.phone },
       },
     ] as const;
   }),

@@ -2,9 +2,14 @@
 /** Edit your public seller profile and contact details. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AccountNav from '../../components/AccountNav.astro';
+import VerifiedBadge from '../../components/VerifiedBadge.astro';
 import { safeNext } from '../../lib/api';
+import { photoUrl } from '../../lib/supabase';
 
-const { profile } = Astro.locals;
+const { profile, user } = Astro.locals;
+const verified = Boolean(profile?.verified || profile?.role === 'admin');
+const avatarUrl = verified && profile?.avatar ? photoUrl(profile.avatar) : null;
+const initial = (profile?.display_name ?? '?').trim().charAt(0).toUpperCase();
 const q = Astro.url.searchParams;
 const next = safeNext(q.get('next'), '/account/');
 const error = q.get('error');
@@ -22,9 +27,46 @@ const p = profile;
         </p>
       </div>
 
-      <form method="post" action="/api/profile/" class="form">
+      <form method="post" action="/api/profile/" class="form" data-profile-form data-user={user?.id}>
         {error && <div class="notice error">{error}</div>}
         {next !== '/account/' && <div class="notice">Add a Messenger username or phone number, then you can start listing.</div>}
+
+        <section class="photo" aria-labelledby="photo-title">
+          <span class="ph-preview" data-photo-preview>
+            {avatarUrl ? <img src={avatarUrl} alt="Your profile photo" /> : <span class="ph-initial">{initial}</span>}
+          </span>
+          <div class="ph-body">
+            <h2 id="photo-title" class="label">
+              Profile photo {verified && <VerifiedBadge />}
+            </h2>
+            {
+              verified ? (
+                <>
+                  <p class="help">A clear photo of you builds trust with buyers. Shown on your seller page and listings.</p>
+                  <div class="ph-actions">
+                    <label class="btn btn--ghost btn--sm ph-upload">
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/heic" data-photo-file hidden />
+                      <span data-photo-label>{avatarUrl ? 'Change photo' : 'Upload photo'}</span>
+                    </label>
+                    <button type="button" class="link label" data-photo-remove hidden={!avatarUrl}>
+                      Remove
+                    </button>
+                  </div>
+                  <input type="hidden" name="avatar" value={p?.avatar ?? ''} data-photo-path />
+                  <p class="help ph-status" data-photo-status aria-live="polite" />
+                </>
+              ) : (
+                <p class="help">
+                  🔒 Unlocks once you’re a <b>verified seller</b>. Verified sellers get a photo and the{' '}
+                  <span class="nowrap">
+                    badge <VerifiedBadge />
+                  </span>{' '}
+                  next to their name. Verification is done by the OFFARCHIVE. team.
+                </p>
+              )
+            }
+          </div>
+        </section>
 
         <div class="two">
           <label class="field">
@@ -105,17 +147,31 @@ const p = profile;
               </p>
             </div>
           </details>
-          <div class="two">
-            <label class="field">
-              <span class="label">Mobile number</span>
-              <input class="input" name="phone" value={p?.phone ?? ''} placeholder="0917 555 0101" inputmode="tel" autocomplete="tel" />
-              <span class="help">Shown publicly on your listings.</span>
-            </label>
-            <label class="field">
-              <span class="label">Instagram (optional)</span>
-              <input class="input" name="instagram" value={p?.instagram ?? ''} placeholder="@handle" autocapitalize="none" />
-            </label>
-          </div>
+          <label class="field">
+            <span class="label">Mobile number</span>
+            <input class="input" name="phone" value={p?.phone ?? ''} placeholder="0917 555 0101" inputmode="tel" autocomplete="tel" />
+            <span class="help">Shown publicly on your listings.</span>
+          </label>
+          <label class="field">
+            <span class="label">Instagram username <span class="muted">· optional</span></span>
+            <input
+              class="input"
+              name="instagram"
+              value={p?.instagram ?? ''}
+              placeholder="e.g. juan.delacruz"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              data-ig-input
+            />
+            <span class="help">
+              Your Instagram username, the name under your profile picture in the app (no @ needed). Pasting your profile link works too. Shows
+              as an <b>Instagram ↗</b> link on your seller page so buyers can see more of your style.
+              <span class="test" data-ig-test hidden>
+                Check it: <a href="#" target="_blank" rel="noopener" data-ig-link>instagram.com/<span></span> ↗</a> should open your profile.
+              </span>
+            </span>
+          </label>
         </fieldset>
 
         <input type="hidden" name="next" value={next} />
@@ -129,6 +185,104 @@ const p = profile;
 </BaseLayout>
 
 <script>
+  import { createBrowserClient } from '@supabase/ssr';
+
+  // Live "Check it" link under the Instagram field (same clean-up as the server: @, links, ?igsh=…).
+  {
+    const ig = document.querySelector<HTMLInputElement>('[data-ig-input]');
+    const igTest = document.querySelector<HTMLElement>('[data-ig-test]');
+    const igLink = document.querySelector<HTMLAnchorElement>('[data-ig-link]');
+    if (ig && igTest && igLink) {
+      const update = () => {
+        const v = ig.value
+          .trim()
+          .replace(/^@/, '')
+          .replace(/^(https?:\/\/)?(www\.|m\.)?instagram\.com\//i, '')
+          .replace(/[?#].*$/, '')
+          .replace(/\/+$/, '')
+          .replace(/^@/, '');
+        const ok = /^[A-Za-z0-9._]{1,30}$/.test(v);
+        igTest.hidden = !ok;
+        if (ok) {
+          igLink.href = `https://instagram.com/${v}`;
+          igLink.querySelector('span')!.textContent = v;
+        }
+      };
+      ig.addEventListener('input', update);
+      update();
+    }
+  }
+
+  // Profile photo (verified sellers): square-crop + compress in the browser, upload to your own
+  // storage folder, then "Save profile" stores the path. Re-encoding strips EXIF/GPS data.
+  {
+    const form = document.querySelector<HTMLFormElement>('[data-profile-form]');
+    const file = document.querySelector<HTMLInputElement>('[data-photo-file]');
+    const pathInput = document.querySelector<HTMLInputElement>('[data-photo-path]');
+    const preview = document.querySelector<HTMLElement>('[data-photo-preview]');
+    const status = document.querySelector<HTMLElement>('[data-photo-status]');
+    const label = document.querySelector<HTMLElement>('[data-photo-label]');
+    const remove = document.querySelector<HTMLButtonElement>('[data-photo-remove]');
+    const submit = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (form && file && pathInput && preview && status && label && remove) {
+      const supabase = createBrowserClient(import.meta.env.PUBLIC_SUPABASE_URL as string, import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string);
+      const userId = form.dataset.user!;
+      const initialHtml = `<span class="ph-initial">${preview.textContent?.trim().charAt(0) || '?'}</span>`;
+      let unsaved: string | null = null; // uploaded this visit but not saved yet
+
+      const squareJpeg = async (f: File): Promise<Blob> => {
+        const bmp = await createImageBitmap(f, { imageOrientation: 'from-image' });
+        const side = Math.min(bmp.width, bmp.height);
+        const out = Math.min(480, side);
+        const c = document.createElement('canvas');
+        c.width = c.height = out;
+        c.getContext('2d')!.drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, out, out);
+        bmp.close();
+        return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('encode'))), 'image/jpeg', 0.86));
+      };
+      const dropUnsaved = () => {
+        if (unsaved) supabase.storage.from('listing-images').remove([unsaved]);
+        unsaved = null;
+      };
+
+      file.addEventListener('change', async () => {
+        const f = file.files?.[0];
+        file.value = '';
+        if (!f) return;
+        status.textContent = 'Uploading…';
+        if (submit) submit.disabled = true;
+        try {
+          const blob = await squareJpeg(f);
+          const path = `${userId}/avatar-${Date.now()}.jpg`;
+          const { error } = await supabase.storage.from('listing-images').upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
+          if (error) throw error;
+          dropUnsaved();
+          unsaved = path;
+          pathInput.value = path;
+          preview.innerHTML = `<img src="${URL.createObjectURL(blob)}" alt="Your new profile photo">`;
+          label.textContent = 'Change photo';
+          remove.hidden = false;
+          status.textContent = 'Looks good. Tap “Save profile” to keep it.';
+        } catch {
+          status.textContent = 'That photo couldn’t be used. Try a JPG or PNG under 10 MB.';
+        } finally {
+          if (submit) submit.disabled = false;
+        }
+      });
+
+      remove.addEventListener('click', () => {
+        dropUnsaved();
+        pathInput.value = '';
+        preview.innerHTML = initialHtml;
+        label.textContent = 'Upload photo';
+        remove.hidden = true;
+        status.textContent = 'Photo removed. Tap “Save profile” to confirm.';
+      });
+
+      form.addEventListener('submit', () => (unsaved = null)); // it's being saved: keep the file
+    }
+  }
+
   // Live "Check it" link under the Messenger field, so sellers can confirm the username opens their own chat.
   const input = document.querySelector<HTMLInputElement>('[data-messenger-input]');
   const test = document.querySelector<HTMLElement>('[data-messenger-test]');
@@ -192,6 +346,70 @@ const p = profile;
   }
   .contact legend {
     padding: 0 6px;
+  }
+  /* Profile photo */
+  .photo {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper-2);
+  }
+  .ph-preview {
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex: none;
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+  .ph-preview :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ph-preview :global(.ph-initial) {
+    font: 400 40px var(--display);
+  }
+  .ph-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .ph-body h2 {
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+  }
+  .ph-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .ph-upload {
+    cursor: pointer;
+  }
+  .ph-status:empty {
+    display: none;
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+  @media (max-width: 480px) {
+    .photo {
+      align-items: flex-start;
+    }
+    .ph-preview {
+      width: 64px;
+      height: 64px;
+    }
   }
   .test {
     display: block;

@@ -122,9 +122,24 @@ export const profileInput = z.object({
   instagram: z
     .string()
     .trim()
-    .transform((v) => v.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/$/, ''))
-    .refine((v) => v === '' || /^[A-Za-z0-9._]{1,30}$/.test(v), 'Instagram: just your handle.')
+    // "@juan.dc", "juan.dc" or a pasted profile link (with or without https://, www., ?igsh=… share codes).
+    .transform((v) =>
+      v
+        .replace(/^@/, '')
+        .replace(/^(https?:\/\/)?(www\.|m\.)?instagram\.com\//i, '')
+        .replace(/[?#].*$/, '')
+        .replace(/\/+$/, '')
+        .replace(/^@/, ''),
+    )
+    .refine((v) => v === '' || /^[A-Za-z0-9._]{1,30}$/.test(v), 'Instagram: just your username, like juan.delacruz (letters, numbers, dots or underscores, no spaces).')
     .transform((v) => v || null),
+  // Verified sellers' photo: a storage path set by the profile page's uploader. Absent = unchanged.
+  avatar: z
+    .string()
+    .trim()
+    .optional()
+    .refine((v) => v === undefined || v === '' || /^[0-9a-f-]{36}\/avatar-[0-9]{10,16}\.jpg$/.test(v), 'The photo didn’t upload properly. Please try again.')
+    .transform((v) => (v === undefined ? undefined : v || null)),
 });
 
 /** First readable message from a zod error. */

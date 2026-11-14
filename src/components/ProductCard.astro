@@ -5,6 +5,7 @@ import { shortCategory } from '../config/site';
 import Hanger from './Hanger.astro';
 import ProductMedia from './ProductMedia.astro';
 import SaveButton from './SaveButton.astro';
+import VerifiedBadge from './VerifiedBadge.astro';
 
 interface Props {
   item: Item;
@@ -60,7 +61,7 @@ const sold = status === 'sold' && dimSold;
         ) : (
           <span class="by">
             @{item.data.seller.username}
-            {item.data.seller.verified && <span class="tick" title="Verified seller">✓</span>}
+            {item.data.seller.verified && <VerifiedBadge />}
           </span>
         )
       }
@@ -89,18 +90,6 @@ const sold = status === 'sold' && dimSold;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .tick {
-    display: inline-grid;
-    place-items: center;
-    width: 13px;
-    height: 13px;
-    margin-left: 4px;
-    border-radius: 50%;
-    background: var(--ok);
-    color: var(--on-accent);
-    font-size: 8px;
-    vertical-align: 1px;
   }
   .card :global(.card-save) {
     position: absolute;

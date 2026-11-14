@@ -11,6 +11,8 @@ export interface ProfileRow {
   messenger: string | null;
   phone: string | null;
   instagram: string | null;
+  /** Storage path of a verified seller's photo (20261114000002_avatars.sql). */
+  avatar: string | null;
   role: Role;
   verified: boolean;
   created_at: string;
@@ -43,8 +45,8 @@ export interface ListingRow {
 }
 
 export type ListingWithSeller = ListingRow & {
-  seller: Pick<ProfileRow, 'id' | 'username' | 'display_name' | 'verified' | 'role' | 'messenger' | 'phone' | 'instagram' | 'location' | 'bio'> | null;
+  seller: Pick<ProfileRow, 'id' | 'username' | 'display_name' | 'verified' | 'role' | 'messenger' | 'phone' | 'instagram' | 'avatar' | 'location' | 'bio'> | null;
 };
 
-export const SELLER_COLUMNS = 'id, username, display_name, verified, role, messenger, phone, instagram, location, bio';
+export const SELLER_COLUMNS = 'id, username, display_name, verified, role, messenger, phone, instagram, avatar, location, bio';
 export const LISTING_SELECT = `*, seller:profiles(${SELLER_COLUMNS})`;

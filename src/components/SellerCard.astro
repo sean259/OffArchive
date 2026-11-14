@@ -1,6 +1,7 @@
 ---
 /** "Sold by" block on item pages: who the seller is and how to reach them. */
 import { sellerPath, type Seller } from '../lib/items';
+import VerifiedBadge from './VerifiedBadge.astro';
 
 interface Props {
   seller: Seller;
@@ -11,12 +12,12 @@ const initial = seller.name.trim().charAt(0).toUpperCase() || '·';
 
 <div class:list={['seller', { official: seller.official }]}>
   <a class="who" href={sellerPath(seller)}>
-    <span class="avatar" aria-hidden="true">{seller.official ? 'O.' : initial}</span>
+    <span class="avatar" aria-hidden="true">{seller.avatar ? <img src={seller.avatar} alt="" loading="lazy" decoding="async" /> : seller.official ? 'O.' : initial}</span>
     <span class="txt">
       <span class="label muted">{seller.official ? 'Sold by the archive' : 'Sold by'}</span>
       <span class="name">
         {seller.name}
-        {seller.verified && !seller.official && <span class="tick" title="Verified seller">✓</span>}
+        {seller.verified && !seller.official && <VerifiedBadge />}
       </span>
       <span class="label muted">@{seller.username} · {seller.location}</span>
     </span>
@@ -59,6 +60,12 @@ const initial = seller.name.trim().charAt(0).toUpperCase() || '·';
     color: var(--on-ink);
     font: 400 24px var(--display);
     flex: none;
+    overflow: hidden;
+  }
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   .official .avatar {
     background: var(--accent);
@@ -77,18 +84,6 @@ const initial = seller.name.trim().charAt(0).toUpperCase() || '·';
   }
   .who:hover .name {
     color: var(--accent);
-  }
-  .tick {
-    display: inline-grid;
-    place-items: center;
-    width: 16px;
-    height: 16px;
-    margin-left: 6px;
-    border-radius: 50%;
-    background: var(--ok);
-    color: var(--on-accent);
-    font: 500 9px var(--sans);
-    vertical-align: 3px;
   }
   .links {
     display: flex;

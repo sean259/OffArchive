@@ -3,6 +3,7 @@ import { getCatalog, esc, STATUS_TEXT, type CatalogEntry } from '../lib/catalog'
 import { getSaved } from '../lib/saved';
 import { rememberView } from '../lib/recent';
 import { trackView } from '../lib/track';
+import { VERIFIED_BADGE } from '../lib/badge';
 import { itemMessage, withMessage } from '../lib/contact';
 
 const dialog = document.querySelector<HTMLDialogElement>('#quick');
@@ -26,7 +27,7 @@ function render(e: CatalogEntry) {
   const sold = e.status === 'sold';
   const href = contactHref(e);
   const message = itemMessage({ no: e.no, title: e.title, size: e.size, price: e.priceLabel, url: location.origin + e.url });
-  const seller = e.seller.official ? 'OFFARCHIVE.' : `@${esc(e.seller.username)}`;
+  const seller = e.seller.official ? 'OFFARCHIVE.' : `@${esc(e.seller.username)}${e.seller.verified ? VERIFIED_BADGE : ''}`;
   const specs = [
     e.size && [e.sizeLabel, e.size],
     ['Condition', e.condition],

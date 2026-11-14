@@ -23,7 +23,7 @@ export interface CatalogEntry {
   /** Listing time (ms), for "new since your last visit". */
   listed: number;
   art: string;
-  seller: { username: string; name: string; official: boolean; messenger: string | null; phone: string | null };
+  seller: { username: string; name: string; official: boolean; verified: boolean; messenger: string | null; phone: string | null };
 }
 
 let cache: Record<string, CatalogEntry> | null = null;
