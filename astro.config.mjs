@@ -17,5 +17,8 @@ export default defineConfig({
   }),
   // Logins are handled by Supabase cookies, so Astro sessions (and their Cloudflare KV store) aren't needed.
   session: false,
+  // Fetch a page as soon as its link is hovered (or tapped), so navigating feels instant.
+  // Safe because every action with a side effect (logout, listings, admin) is a POST, not a link.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   security: { checkOrigin: true },
 });
