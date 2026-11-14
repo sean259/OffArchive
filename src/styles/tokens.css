@@ -31,9 +31,12 @@
   --pf-bg: var(--paper);
   --photo-filter: saturate(0.96);
 
-  --display: 'Instrument Serif', 'Times New Roman', serif;
-  --sans: 'Inter Variable', 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  --mono: 'DM Mono', ui-monospace, monospace;
+  /* Modern-editorial pairing: Libre Caslon (a classic, trusted book serif) for headlines,
+     Schibsted Grotesk (built for a news publisher: clear and businesslike) for reading and
+     UI, Fragment Mono for small archival labels. Inter only fills in the ₱ sign. */
+  --display: 'OA Caslon', 'Big Caslon', 'Inter Variable', 'Times New Roman', serif;
+  --sans: 'Schibsted Grotesk Variable', 'Inter Variable', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'Fragment Mono', 'Inter Variable', ui-monospace, 'SFMono-Regular', monospace;
 
   --header-h: 68px;
   --gutter: clamp(18px, 3.2vw, 44px);

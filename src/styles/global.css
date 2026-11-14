@@ -163,9 +163,8 @@ section {
   background: var(--ink);
   color: var(--on-ink);
   border: 1px solid var(--ink);
-  font: 500 12px var(--sans);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font: 600 15px/1 var(--sans);
+  letter-spacing: -0.005em;
   white-space: nowrap;
   transition:
     color 0.45s var(--ease),
