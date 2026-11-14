@@ -44,6 +44,7 @@ export function applySecurityHeaders(headers: Headers, https: boolean) {
  */
 const RULES: { test: RegExp; limit: number; windowMs: number }[] = [
   { test: /^\/api\/auth\/(otp|verify)/, limit: 8, windowMs: 10 * 60_000 }, // login attempts
+  { test: /^\/api\/track/, limit: 120, windowMs: 60_000 }, // seller-stats beacons from browsing
   { test: /^\/api\//, limit: 60, windowMs: 60_000 }, // everything else that writes
 ];
 const hits = new Map<string, { count: number; reset: number }>();

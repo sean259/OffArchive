@@ -3,6 +3,7 @@ import { getSaved, toggleSaved, removeSaved, clearSaved, refreshSaved } from '..
 import { toast } from '../lib/toast';
 import { getCatalog, esc, thumbHtml, STATUS_TEXT, type CatalogEntry } from '../lib/catalog';
 import { withMessage } from '../lib/contact';
+import { trackSave } from '../lib/track';
 
 const catalog = getCatalog();
 const drawer = document.querySelector<HTMLDialogElement>('#saved');
@@ -68,7 +69,7 @@ function renderDrawer(ids: string[]) {
       const href = seller.messenger ?? (seller.phone ? `sms:${seller.phone.replace(/\s/g, '')}` : null);
       if (!href) return '';
       const verb = seller.messenger ? 'Ask' : 'Text';
-      return `<a class="btn btn--block" href="${esc(withMessage(href, msg))}" target="_blank" rel="noopener" data-copy="${esc(msg)}">
+      return `<a class="btn btn--block" href="${esc(withMessage(href, msg))}" target="_blank" rel="noopener" data-copy="${esc(msg)}" data-track-msg="${esc(group.map((e) => e.id).join(','))}">
           <span>${verb}${who} about ${count}</span><span class="arrow">→</span></a>`;
     })
     .join('');
@@ -87,6 +88,7 @@ document.addEventListener('click', (e) => {
   if (saveBtn) {
     e.preventDefault();
     const now = toggleSaved(saveBtn.dataset.save!);
+    trackSave(saveBtn.dataset.save!, now);
     saveBtn.classList.remove('pop');
     void saveBtn.offsetWidth; // restart animation
     if (now) saveBtn.classList.add('pop');
@@ -102,10 +104,12 @@ document.addEventListener('click', (e) => {
   const remove = target.closest<HTMLElement>('[data-remove]');
   if (remove) {
     removeSaved(remove.dataset.remove!);
+    trackSave(remove.dataset.remove!, false);
     return;
   }
 
   if (target.closest('[data-saved-clear]')) {
+    getSaved().forEach((id) => trackSave(id, false));
     clearSaved();
     return;
   }

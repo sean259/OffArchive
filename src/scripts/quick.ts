@@ -2,6 +2,7 @@
 import { getCatalog, esc, STATUS_TEXT, type CatalogEntry } from '../lib/catalog';
 import { getSaved } from '../lib/saved';
 import { rememberView } from '../lib/recent';
+import { trackView } from '../lib/track';
 import { itemMessage, withMessage } from '../lib/contact';
 
 const dialog = document.querySelector<HTMLDialogElement>('#quick');
@@ -52,7 +53,7 @@ function render(e: CatalogEntry) {
           sold
             ? `<span class="btn btn--block" aria-disabled="true">Released — sold</span>`
             : href
-              ? `<a class="btn btn--block" href="${esc(withMessage(href, message))}" target="_blank" rel="noopener" data-copy="${esc(message)}">Message ${e.seller.official ? 'us' : 'seller'} <span class="arrow">→</span><span class="sr-only">(opens in a new tab)</span></a>`
+              ? `<a class="btn btn--block" href="${esc(withMessage(href, message))}" target="_blank" rel="noopener" data-copy="${esc(message)}" data-track-msg="${esc(e.id)}">Message ${e.seller.official ? 'us' : 'seller'} <span class="arrow">→</span><span class="sr-only">(opens in a new tab)</span></a>`
               : ''
         }
         <a class="btn btn--ghost" href="${esc(e.url)}">Full details <span class="arrow">→</span></a>
@@ -86,6 +87,7 @@ if (dialog && body) {
     if (!entry) return void (location.href = btn.closest('[data-card]')?.querySelector<HTMLAnchorElement>('a[href]')?.href ?? '/');
     render(entry);
     rememberView(entry.id);
+    trackView(entry.id);
     dialog.showModal();
     // Start focus on the panel itself (not the first button), so nothing looks pre-selected.
     body.focus({ preventScroll: true });

@@ -5,10 +5,20 @@
 import { getCatalog, esc, STATUS_TEXT, type CatalogEntry } from '../lib/catalog';
 import { getRecent, rememberView, clearRecent, previousVisit } from '../lib/recent';
 import { toast } from '../lib/toast';
+import { trackView, trackMessage } from '../lib/track';
 
-/* ── Remember the piece on an item page ── */
+/* ── Remember the piece on an item page (and count the view for the seller's stats) ── */
 const current = document.querySelector<HTMLElement>('[data-view-item]')?.dataset.viewItem;
-if (current) rememberView(current);
+if (current) {
+  rememberView(current);
+  trackView(current);
+}
+
+/* ── Seller stats: a tap on any Message button marked [data-track-msg="slug,slug"] ── */
+document.addEventListener('click', (e) => {
+  const ids = (e.target as Element).closest<HTMLElement>('[data-track-msg]')?.dataset.trackMsg;
+  if (ids) trackMessage(ids.split(',').filter(Boolean));
+});
 
 /* ── Recently viewed rail ── */
 const media = (e: CatalogEntry) => {

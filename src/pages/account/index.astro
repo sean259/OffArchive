@@ -13,6 +13,29 @@ if (supabase && user) {
   const { data } = await supabase.from('listings').select(LISTING_SELECT).eq('seller_id', user.id).order('created_at', { ascending: false });
   listings = ((data ?? []) as ListingWithSeller[]).map(fromRow);
 }
+// Seller stats (views, saves, message taps). Missing until the listing_stats migration is run.
+type Stat = { views: number; saves: number; messages: number; views_30: number; saves_30: number; messages_30: number };
+const stats = new Map<string, Stat>();
+const ids = listings.map((l) => l.uuid).filter((id): id is string => Boolean(id));
+if (supabase && ids.length) {
+  const { data, error } = await supabase.rpc('listing_stats_summary', { p_ids: ids });
+  if (error) console.error('[account] stats:', error.message);
+  for (const r of (data ?? []) as ({ listing_id: string } & Record<keyof Stat, number | string>)[]) {
+    // bigint sums arrive as strings; saves can dip below zero (unsaves), so clamp for display.
+    const n = (k: keyof Stat) => Math.max(0, Number(r[k]) || 0);
+    stats.set(r.listing_id, {
+      views: n('views'),
+      saves: n('saves'),
+      messages: n('messages'),
+      views_30: n('views_30'),
+      saves_30: n('saves_30'),
+      messages_30: n('messages_30'),
+    });
+  }
+}
+const total30 = (k: 'views_30' | 'saves_30' | 'messages_30') => [...stats.values()].reduce((sum, s) => sum + s[k], 0);
+const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString('en-PH')} ${n === 1 ? one : many}`;
+const hasLive = listings.some((l) => ['available', 'reserved', 'sold'].includes(l.data.status));
 const needsContact = !profile?.messenger && !profile?.phone;
 const count = (s: string) => listings.filter((l) => l.data.status === s).length;
 const NOTICES: Record<string, [string, string]> = {
@@ -53,6 +76,39 @@ const notice = NOTICES[Astro.url.searchParams.get('notice') ?? ''];
     </div>
 
     {
+      hasLive && (
+        <section class="reach" aria-labelledby="reach-title">
+          <div class="reach-head">
+            <h2 id="reach-title" class="label muted">
+              Last 30 days
+            </h2>
+            <span class="label muted">Your own visits don’t count</span>
+          </div>
+          <div class="reach-grid">
+            <div>
+              <strong class="num">{total30('views_30').toLocaleString('en-PH')}</strong>
+              <span>Views</span>
+              <small class="muted">People who opened a piece</small>
+            </div>
+            <div>
+              <strong class="num">{total30('saves_30').toLocaleString('en-PH')}</strong>
+              <span>Saves</span>
+              <small class="muted">Added to someone’s Saved list</small>
+            </div>
+            <div>
+              <strong class="num">{total30('messages_30').toLocaleString('en-PH')}</strong>
+              <span>Message taps</span>
+              <small class="muted">Tapped “Message” to ask about it</small>
+            </div>
+          </div>
+          {total30('views_30') === 0 && (
+            <p class="muted reach-tip">Numbers show up here as buyers start browsing your live pieces. Clear photos and measurements help them get found.</p>
+          )}
+        </section>
+      )
+    }
+
+    {
       listings.length === 0 ? (
         <div class="empty">
           <p class="serif">
@@ -82,6 +138,15 @@ const notice = NOTICES[Astro.url.searchParams.get('notice') ?? ''];
                     {d.title}
                   </a>
                   <span class="num">{peso(d.price)}</span>
+                  {live &&
+                    (() => {
+                      const s = l.uuid ? stats.get(l.uuid) : undefined;
+                      return (
+                        <span class="engage label muted" title="All time · your own visits don’t count">
+                          {plural(s?.views ?? 0, 'view')} · {plural(s?.saves ?? 0, 'save')} · {plural(s?.messages ?? 0, 'message tap')}
+                        </span>
+                      );
+                    })()}
                   {d.status === 'rejected' && d.reviewNote && <span class="review">Admin note: {d.reviewNote}</span>}
                 </div>
                 <div class="state">
@@ -191,6 +256,67 @@ const notice = NOTICES[Astro.url.searchParams.get('notice') ?? ''];
     border-radius: 0;
     align-self: stretch;
     padding: 0 28px;
+  }
+  /* Seller stats */
+  .reach {
+    margin: -8px 0 36px;
+    padding: 0;
+  }
+  .reach-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .reach-head h2 {
+    font: 400 11px/1.4 var(--mono);
+    letter-spacing: 0.1em;
+  }
+  .reach-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .reach-grid div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 20px;
+    background: var(--paper-2);
+  }
+  .reach-grid strong {
+    font: 400 36px/1 var(--display);
+    margin-bottom: 4px;
+  }
+  .reach-grid span {
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .reach-grid small {
+    font-size: 12px;
+  }
+  .reach-tip {
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .engage {
+    margin-top: 2px;
+  }
+  @media (max-width: 640px) {
+    .reach-grid div {
+      padding: 14px 12px;
+    }
+    .reach-grid strong {
+      font-size: 28px;
+    }
+    .reach-grid small {
+      display: none;
+    }
   }
   .list {
     list-style: none;
