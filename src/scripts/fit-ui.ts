@@ -80,7 +80,8 @@ function initFinder(root: HTMLElement) {
 
   let hUnit: 'cm' | 'ft' = 'cm';
   let wUnit: 'kg' | 'lb' = 'kg';
-  let pref: Pref = 'regular';
+  // Fit preference is no longer asked: the size mannequin shows how roomy a piece is instead.
+  const pref: Pref = 'regular';
 
   const setPressed = (sel: string, match: (b: HTMLElement) => boolean) =>
     root.querySelectorAll<HTMLElement>(sel).forEach((b) => b.setAttribute('aria-pressed', String(match(b))));
@@ -91,7 +92,6 @@ function initFinder(root: HTMLElement) {
     root.querySelector('[data-w-unit]')!.textContent = wUnit;
     setPressed('[data-unit="h"]', (b) => b.dataset.val === hUnit);
     setPressed('[data-unit="w"]', (b) => b.dataset.val === wUnit);
-    setPressed('[data-pref]', (b) => b.dataset.pref === pref);
   }
 
   function read(): Partial<Profile> {
@@ -104,7 +104,6 @@ function initFinder(root: HTMLElement) {
   function fill(p: Profile) {
     hUnit = p.units?.h ?? 'cm';
     wUnit = p.units?.w ?? 'kg';
-    pref = p.pref;
     if (hUnit === 'cm') f('hcm').value = String(Math.round(p.heightCm));
     else {
       const { ft, inch } = cmToFtIn(p.heightCm);
@@ -174,7 +173,7 @@ function initFinder(root: HTMLElement) {
 
   form.addEventListener('input', update);
   root.addEventListener('click', (e) => {
-    const t = (e.target as Element).closest<HTMLElement>('[data-unit], [data-pref], [data-ff-clear]');
+    const t = (e.target as Element).closest<HTMLElement>('[data-unit], [data-ff-clear]');
     if (!t) return;
     if (t.dataset.unit === 'h') {
       const cur = read().heightCm;
@@ -191,8 +190,6 @@ function initFinder(root: HTMLElement) {
       const cur = read().weightKg;
       wUnit = t.dataset.val as 'kg' | 'lb';
       if (cur && !Number.isNaN(cur)) f('w').value = String(Math.round(wUnit === 'kg' ? cur : kgToLb(cur)));
-    } else if (t.dataset.pref) {
-      pref = t.dataset.pref as Pref;
     } else if (t.hasAttribute('data-ff-clear')) {
       window.clearTimeout(timer); // a save still waiting from typing would bring the profile back
       form.reset();

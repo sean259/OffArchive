@@ -8,7 +8,9 @@ export function getProfile(): Profile | null {
   if (memory !== undefined) return memory;
   try {
     const p = JSON.parse(localStorage.getItem(KEY) ?? 'null');
-    memory = p && isValid(p) ? p : null;
+    // The fit-preference buttons were removed; older saved "fitted"/"relaxed" choices are
+    // treated as regular so no hidden setting keeps changing someone's results.
+    memory = p && isValid(p) ? { ...p, pref: 'regular' } : null;
   } catch {
     memory = null;
   }

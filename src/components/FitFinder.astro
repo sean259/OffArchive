@@ -1,6 +1,6 @@
 ---
 /**
- * Fit finder: height + weight + fit preference → size suggestion.
+ * Fit finder: height + weight → size suggestion (+ the size mannequin on item pages).
  *  - With `item`: compares against that piece (item page).
  *  - Without:     shows general tops/bottoms sizing (size guide).
  * Logic: lib/fit.ts · behaviour: scripts/fit-ui.ts
@@ -55,15 +55,6 @@ const { item, id = 'ff' } = Astro.props;
           <button type="button" data-unit="w" data-val="kg" aria-pressed="true">kg</button>
           <button type="button" data-unit="w" data-val="lb" aria-pressed="false">lb</button>
         </div>
-      </div>
-    </fieldset>
-
-    <fieldset class="field">
-      <legend class="label muted">I like my fit</legend>
-      <div class="seg wide" role="group" aria-label="Fit preference">
-        <button type="button" data-pref="fitted" aria-pressed="false">Fitted</button>
-        <button type="button" data-pref="regular" aria-pressed="true">Regular</button>
-        <button type="button" data-pref="relaxed" aria-pressed="false">Relaxed</button>
       </div>
     </fieldset>
   </form>
@@ -171,13 +162,6 @@ const { item, id = 'ff' } = Astro.props;
     background: var(--ink);
     color: var(--on-ink);
   }
-  .seg.wide {
-    display: flex;
-  }
-  .seg.wide button {
-    flex: 1;
-  }
-
   .result {
     border-top: 1px solid var(--line);
     padding-top: 20px;

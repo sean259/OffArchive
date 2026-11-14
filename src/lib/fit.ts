@@ -145,7 +145,7 @@ export interface Result {
 }
 
 const TOP_COPY: Record<Tone, [string, string]> = {
-  good: ['Should fit you well', 'Close to your size for the way you like to wear it.'],
+  good: ['Should fit you well', 'Right around your usual size.'],
   roomy: ['Roomier than your usual', 'Expect a relaxed, easy fit on you.'],
   big: ['Oversized on you', 'Noticeably bigger than your size. Great if you like it baggy.'],
   snug: ['A snug fit on you', 'Closer to the body than your usual. Could be tight across the chest.'],
