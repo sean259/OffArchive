@@ -116,7 +116,7 @@ const isMe = Astro.locals.profile?.username === seller.username;
   }
   .avatar.official {
     background: var(--accent);
-    color: #f6f2ec;
+    color: var(--on-accent);
     font: 700 clamp(22px, 2.4vw, 32px) var(--sans);
     letter-spacing: -0.05em;
   }
@@ -132,7 +132,7 @@ const isMe = Astro.locals.profile?.username === seller.username;
     margin-left: 0.15em;
     border-radius: 50%;
     background: var(--ok);
-    color: #f6f2ec;
+    color: var(--on-accent);
     font: 500 0.16em var(--sans);
     vertical-align: 0.5em;
   }

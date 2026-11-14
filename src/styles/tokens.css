@@ -9,14 +9,16 @@
   --paper-3: #dbd5ca; /* hover, pressed */
   --ink: #141412;
   --ink-2: #2b2a26;
-  --muted: #6c675e;
-  --faint: #a29d93;
+  --muted: #5c574f; /* ≥4.5:1 on every paper tone */
+  --faint: #7d776e; /* placeholders, decorative dots */
   --line: rgba(20, 20, 18, 0.12);
   --line-strong: rgba(20, 20, 18, 0.3);
   --accent: #8c3a24; /* rust: archive tag */
-  --ok: #5c6a4a;
-  --hold: #a8812f;
+  --ok: #505d3c;
+  --hold: #7a5b1a;
   --on-ink: #efebe4;
+  --on-accent: #f6f2ec; /* text on --accent / --ok / --hold fills */
+  --field-line: rgba(20, 20, 18, 0.5); /* form borders: ≥3:1 so fields are visible */
   --scrim: rgba(14, 14, 12, 0.5);
   --grain-opacity: 0.07;
   /* Photo frames: light backgrounds in photos melt into the paper tone. */
@@ -45,13 +47,15 @@
     --ink: #ece7de;
     --ink-2: #d4cec3;
     --muted: #9b958a;
-    --faint: #67625a;
+    --faint: #807a71;
     --line: rgba(236, 231, 222, 0.11);
     --line-strong: rgba(236, 231, 222, 0.28);
     --accent: #d0714f;
     --ok: #97a582;
     --hold: #d4ad60;
     --on-ink: #100f0d;
+    --on-accent: #100f0d;
+    --field-line: rgba(236, 231, 222, 0.42);
     --grain-opacity: 0.05;
     --photo-blend: normal;
   --pf-bg: var(--paper-2);
@@ -67,13 +71,15 @@
   --ink: #ece7de;
   --ink-2: #d4cec3;
   --muted: #9b958a;
-  --faint: #67625a;
+  --faint: #807a71;
   --line: rgba(236, 231, 222, 0.11);
   --line-strong: rgba(236, 231, 222, 0.28);
   --accent: #d0714f;
   --ok: #97a582;
   --hold: #d4ad60;
   --on-ink: #100f0d;
+  --on-accent: #100f0d;
+  --field-line: rgba(236, 231, 222, 0.42);
   --grain-opacity: 0.05;
   --photo-blend: normal;
   --pf-bg: var(--paper-2);

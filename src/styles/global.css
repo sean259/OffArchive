@@ -61,7 +61,7 @@ select {
   display: none !important;
 }
 :focus-visible {
-  outline: 1.5px solid var(--accent);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 ::selection {
@@ -186,18 +186,24 @@ section {
   border-radius: inherit;
   transition: transform 0.45s var(--ease);
 }
-.btn:hover::before {
-  transform: none;
+/* Hover effects only where there is a real hover; on touch screens they'd stick after a tap. */
+@media (hover: hover) {
+  .btn:hover::before {
+    transform: none;
+  }
+  .btn:hover {
+    border-color: var(--accent);
+    color: var(--on-accent);
+  }
+  .btn:hover .arrow {
+    transform: translateX(4px);
+  }
 }
-.btn:hover {
-  border-color: var(--accent);
-  color: #f6f2ec;
+.btn:focus-visible {
+  outline-offset: 4px;
 }
 .btn .arrow {
   transition: transform 0.45s var(--ease);
-}
-.btn:hover .arrow {
-  transform: translateX(4px);
 }
 .btn--ghost {
   background: transparent;
@@ -212,6 +218,7 @@ section {
 .btn--block {
   width: 100%;
 }
+.btn:disabled,
 .btn[aria-disabled='true'] {
   opacity: 0.4;
   pointer-events: none;
@@ -229,6 +236,7 @@ section {
   background: none;
   border: 0;
   padding: 4px 0;
+  min-height: 24px; /* WCAG 2.2 minimum target size */
   white-space: nowrap;
 }
 .link::after {
@@ -242,8 +250,10 @@ section {
   transform-origin: right;
   transition: transform 0.5s var(--ease);
 }
-.link:hover::after {
-  transform: scaleX(0);
+@media (hover: hover) {
+  .link:hover::after {
+    transform: scaleX(0);
+  }
 }
 
 /* ── Media frame ──────────────────────────── */
@@ -505,7 +515,7 @@ dialog.closing::backdrop {
   padding: 6px 10px;
   border-radius: 999px;
   background: var(--ok);
-  color: #f6f2ec;
+  color: var(--on-accent);
   font-size: 10px;
   pointer-events: none;
   animation: badge-in 0.5s var(--ease);
@@ -538,7 +548,7 @@ dialog.closing::backdrop {
 .select,
 .textarea {
   width: 100%;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--field-line);
   border-radius: 10px;
   background: var(--paper);
   color: var(--ink);
@@ -635,7 +645,7 @@ dialog.closing::backdrop {
 }
 .round[aria-pressed='true'] {
   background: var(--accent);
-  color: #f6f2ec;
+  color: var(--on-accent);
 }
 
 /* ── Reading progress: a hairline across the top that fills as you scroll (CSS only) ── */
